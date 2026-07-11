@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pylos</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="sidebar">
+        <h1>Pylos</h1>
+        <div id="player-info">
+          <div id="player-light" class="player-card active">
+            <span class="ball-indicator light"></span>
+            <span class="player-label">Hell</span>
+            <span class="reserve-count" id="reserve-light">15</span>
+          </div>
+          <div id="player-dark" class="player-card">
+            <span class="ball-indicator dark"></span>
+            <span class="player-label">Dunkel</span>
+            <span class="reserve-count" id="reserve-dark">15</span>
+          </div>
+        </div>
+        <div id="turn-indicator">Hell ist am Zug</div>
+        <div id="move-options"></div>
+        <div id="game-status"></div>
+      </div>
+      <div id="canvas-container"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
