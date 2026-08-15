@@ -422,9 +422,7 @@ export class PylosRenderer {
         this.onEvent?.({ type: 'click_ball', pos: this.moveDragPos })
       }
       this.moveDragPos = null
-    }
-
-    if (this.hoverPos) {
+    } else if (this.hoverPos) {
       this.onEvent?.({ type: 'drag_place', pos: this.hoverPos })
     }
 
