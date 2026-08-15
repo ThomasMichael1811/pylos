@@ -81,6 +81,7 @@ export class PylosRenderer {
   private animFrameId: number = 0
   private is3D: boolean = false
   private onEvent: ((evt: GameEvent) => void) | null = null
+  private removeSelection: Position[] = []
 
   private dragActive = false
   private ghostBall: THREE.Mesh | null = null
@@ -305,8 +306,9 @@ export class PylosRenderer {
     this.renderBoard()
   }
 
-  updateState(state: GameStateData) {
+  updateState(state: GameStateData, removeSelection: Position[] = []) {
     this.state = state
+    this.removeSelection = removeSelection
     this.renderBoard()
   }
 
@@ -482,6 +484,9 @@ export class PylosRenderer {
           }
         }
       }
+      for (const sel of this.removeSelection) {
+        this.addSelectedHighlight(posToWorld(sel))
+      }
     }
   }
 
@@ -548,6 +553,21 @@ export class PylosRenderer {
     })
     const mesh = new THREE.Mesh(geo, mat)
     mesh.position.set(wp.x, wp.y + 0.1, wp.z)
+    mesh.rotation.x = -Math.PI / 2
+    this.highlightGroup.add(mesh)
+  }
+
+  private addSelectedHighlight(wp: THREE.Vector3) {
+    const geo = new THREE.CircleGeometry(BALL_RADIUS + 0.15, 32)
+    const mat = new THREE.MeshBasicMaterial({
+      color: COLORS.highlightRemove,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false,
+    })
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.position.set(wp.x, wp.y + 0.12, wp.z)
     mesh.rotation.x = -Math.PI / 2
     this.highlightGroup.add(mesh)
   }

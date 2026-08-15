@@ -46,8 +46,8 @@ function updateUI() {
       moveOptions.innerHTML = ''
       break
     case 'remove_own_balls':
-      turnText.textContent = `${cpName}: Quadrat in deiner Farbe!`
-      statusText.textContent = `Ausgewählt: ${removeSelection.length}/2 – klicke auf eigene Kugeln`
+      turnText.textContent = 'Du hast ein Quadrat in deiner Farbe gebildet!'
+      statusText.textContent = `Wähle 1 oder 2 deiner Kugeln zum Entfernen. Ausgewählt: ${removeSelection.length}/2`
       moveOptions.innerHTML = `
         <button id="remove-confirm-btn" ${removeSelection.length === 0 ? 'disabled' : ''}>
           ${removeSelection.length} Kugel${removeSelection.length !== 1 ? 'n' : ''} entfernen
@@ -96,7 +96,7 @@ function handleEvent(evt: GameEvent) {
       } else if (removeSelection.length < 2) {
         removeSelection.push(evt.pos)
       }
-      renderer.updateState(state)
+      renderer.updateState(state, removeSelection)
       updateUI()
       return
     }
