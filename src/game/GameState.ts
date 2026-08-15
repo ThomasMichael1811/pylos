@@ -171,6 +171,7 @@ function afterPlace(state: GameStateData, pos: Position): boolean {
   const cpColor = currentPlayer(state).color
   const squares = findSquares(state.board, pos.level)
   for (const sq of squares) {
+    if (sq.x > pos.x || sq.x + 1 < pos.x || sq.y > pos.y || sq.y + 1 < pos.y) continue
     if (isMonochromaticSquare(state.board, pos.level, sq.x, sq.y, cpColor)) {
       state.phase = 'remove_own_balls'
       return true

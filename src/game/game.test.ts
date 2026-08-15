@@ -201,6 +201,17 @@ describe('Farbquadrat entfernen (#11)', () => {
     expect(s.currentPlayerIndex).toBe(0)
   })
 
+  it('bestehendes Farbquadrat löst nichts aus, wenn woanders gesetzt wird (#357)', () => {
+    const s = createInitialState()
+    placeBall(s.board, p(0, 0, 0), 'light')
+    placeBall(s.board, p(0, 1, 0), 'light')
+    placeBall(s.board, p(0, 0, 1), 'light')
+    placeBall(s.board, p(0, 1, 1), 'light')
+    expect(executePlaceReserve(s, p(0, 2, 2))).toBe(true)
+    expect(s.phase).toBe('select_ball')
+    expect(s.currentPlayerIndex).toBe(1)
+  })
+
   it('entfernt 1-2 eigene unbedeckte Kugeln, inkl. gerade gesetzter', () => {
     const s = createInitialState()
     placeBall(s.board, p(0, 0, 0), 'light')
