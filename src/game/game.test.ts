@@ -179,6 +179,46 @@ describe('Versetzen (#12, Constraints)', () => {
     expect(s.currentPlayerIndex).toBe(1)
   })
 
+  it('versetzt von Ebene 1 auf Ebene 2 (#362)', () => {
+    const s = createInitialState()
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) placeBall(s.board, p(0, x, y), 'dark')
+    placeBall(s.board, p(1, 0, 0), 'dark')
+    placeBall(s.board, p(1, 1, 0), 'dark')
+    placeBall(s.board, p(1, 0, 1), 'dark')
+    placeBall(s.board, p(1, 1, 1), 'dark')
+    placeBall(s.board, p(1, 2, 2), 'light')
+    expect(executeMoveExisting(s, p(1, 2, 2), p(2, 0, 0))).toBe(true)
+    expect(getBall(s.board, p(1, 2, 2))).toBeNull()
+    expect(getBall(s.board, p(2, 0, 0))?.color).toBe('light')
+  })
+
+  it('0→3, 1→3, 2→3 strukturell unmöglich — korrekt abgelehnt (#362)', () => {
+    const s = createInitialState()
+    placeBall(s.board, p(0, 3, 3), 'light')
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (x === 3 && y === 3) continue
+      placeBall(s.board, p(0, x, y), 'dark')
+    }
+    placeBall(s.board, p(1, 2, 2), 'light')
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+      if (x === 2 && y === 2) continue
+      placeBall(s.board, p(1, x, y), 'dark')
+    }
+    placeBall(s.board, p(2, 1, 1), 'light')
+    for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
+      if (x === 1 && y === 1) continue
+      placeBall(s.board, p(2, x, y), 'dark')
+    }
+    // 0→3: Ebene 0 voll belegt → Kugel (3,3) ist bedeckt (Ebene-1-Feld (2,2) belegt)
+    expect(executeMoveExisting(s, p(0, 3, 3), p(3, 0, 0))).toBe(false)
+    // 1→3: Ebene 2 voll → Kugel (1,2,2) bedeckt
+    expect(executeMoveExisting(s, p(1, 2, 2), p(3, 0, 0))).toBe(false)
+    // 2→3: Ziel (3,0,0) wird von Quadrat (0,0) der Ebene 2 getragen — Kugel (2,1,1) ist Teil davon (#360)
+    expect(executeMoveExisting(s, p(2, 1, 1), p(3, 0, 0))).toBe(false)
+    expect(s.phase).toBe('select_ball')
+    expect(getBall(s.board, p(3, 0, 0))).toBeNull()
+  })
+
   it('Bedeckt-Erkennung passt zur direkten Abbildung: Feld (2,2) deckt Zelle (2,2)', () => {
     const s = createInitialState()
     placeBall(s.board, p(0, 0, 0), 'dark')

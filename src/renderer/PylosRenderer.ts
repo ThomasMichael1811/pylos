@@ -192,21 +192,15 @@ export class PylosRenderer {
     return false
   }
 
-  private getTargetAtPointer(clientX: number, clientY: number): Position | null {
+  private prepareRay(clientX: number, clientY: number) {
     const rect = this.renderer.domElement.getBoundingClientRect()
     this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1
     this.raycaster.setFromCamera(this.pointer, this.camera)
+  }
 
-    for (const child of this.ballGroup.children) {
-      if (child instanceof THREE.Mesh) {
-        const hit = this.raycaster.intersectObject(child, false)
-        if (hit.length > 0 && child.userData.pos) {
-          return child.userData.pos as Position
-        }
-      }
-    }
-    for (const child of this.highlightGroup.children) {
+  private raycastGroup(group: THREE.Group): Position | null {
+    for (const child of group.children) {
       if (child instanceof THREE.Mesh) {
         const hit = this.raycaster.intersectObject(child, false)
         if (hit.length > 0 && child.userData.pos) {
@@ -215,6 +209,29 @@ export class PylosRenderer {
       }
     }
     return null
+  }
+
+  private getBallAtPointer(clientX: number, clientY: number): Position | null {
+    this.prepareRay(clientX, clientY)
+    return this.raycastGroup(this.ballGroup)
+  }
+
+  private getHighlightAtPointer(clientX: number, clientY: number): Position | null {
+    this.prepareRay(clientX, clientY)
+    return this.raycastGroup(this.highlightGroup)
+  }
+
+  private getTargetAtPointer(clientX: number, clientY: number): Position | null {
+    this.prepareRay(clientX, clientY)
+    return this.raycastGroup(this.ballGroup) ?? this.raycastGroup(this.highlightGroup)
+  }
+
+  private getHighestTargetAtPointer(clientX: number, clientY: number): Position | null {
+    this.prepareRay(clientX, clientY)
+    let best: Position | null = this.raycastGroup(this.ballGroup)
+    const hl = this.raycastGroup(this.highlightGroup)
+    if (hl && (!best || hl.level > best.level)) best = hl
+    return best
   }
 
   private onPointerDown = (e: PointerEvent) => {
@@ -243,7 +260,14 @@ export class PylosRenderer {
       return
     }
 
-    const targetPos = this.getTargetAtPointer(e.clientX, e.clientY)
+    const ballPos = this.getBallAtPointer(e.clientX, e.clientY)
+    const hlPos = this.getHighlightAtPointer(e.clientX, e.clientY)
+    let targetPos: Position | null
+    if (this.selectedBall && hlPos && hlPos.level > (ballPos?.level ?? -1)) {
+      targetPos = hlPos
+    } else {
+      targetPos = ballPos ?? hlPos
+    }
     if (!targetPos) return
     if (this.state.phase === 'remove_own_balls') {
       const slot = getSlot(this.state.board, targetPos)
@@ -309,7 +333,7 @@ export class PylosRenderer {
 
       if (this.moveDragPos) {
         const moves = this.state ? getAvailableMovesRaw(this.state) : emptyMoves
-        const hover = this.getTargetAtPointer(e.clientX, e.clientY)
+        const hover = this.getHighestTargetAtPointer(e.clientX, e.clientY)
         const isValid = hover && moves.stackTargets.some(t =>
           t.x === hover.x && t.y === hover.y && t.level === hover.level &&
           t.level > this.moveDragPos!.level &&
@@ -349,7 +373,7 @@ export class PylosRenderer {
         ...moves.stackTargets,
       ]
 
-      const hover = this.getTargetAtPointer(e.clientX, e.clientY)
+      const hover = this.getHighestTargetAtPointer(e.clientX, e.clientY)
       const isValid = hover && targets.some(t =>
         t.x === hover.x && t.y === hover.y && t.level === hover.level
       )
