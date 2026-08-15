@@ -76,6 +76,15 @@ function handleEvent(evt: GameEvent) {
   if (state.phase === 'game_over') return
 
   switch (evt.type) {
+    case 'drag_move': {
+      if (state.phase !== 'select_ball') return
+      executeMoveExisting(state, evt.from, evt.to)
+      selectedBall = null
+      renderer.updateState(state)
+      updateUI()
+      return
+    }
+
     case 'drag_remove': {
       if (state.phase !== 'remove_own_balls') return
       const board = state.board

@@ -63,6 +63,7 @@ export type GameEvent =
   | { type: 'click_move_to'; from: Position; to: Position }
   | { type: 'click_remove_toggle'; pos: Position }
   | { type: 'drag_remove'; pos: Position }
+  | { type: 'drag_move'; from: Position; to: Position }
   | { type: 'drag_place'; pos: Position }
   | { type: 'click_ball'; pos: Position }
 
@@ -90,6 +91,7 @@ export class PylosRenderer {
   private hoverPos: Position | null = null
   private dragStartScreen = new THREE.Vector2()
   private removeDragPos: Position | null = null
+  private moveDragPos: Position | null = null
 
   constructor(container: HTMLElement) {
     this.scene = new THREE.Scene()
@@ -251,6 +253,30 @@ export class PylosRenderer {
       if (wp) this.ghostBall.position.copy(wp)
       return
     }
+
+    const isMovableSource = getAvailableMovesRaw(this.state).movableBalls.some(t =>
+      t.x === targetPos.x && t.y === targetPos.y && t.level === targetPos.level
+    )
+    if (isMovableSource) {
+      this.moveDragPos = targetPos
+      this.dragActive = true
+      this.dragStartScreen.set(e.clientX, e.clientY)
+
+      const cp = this.state.players[this.state.currentPlayerIndex]
+      const geo = new THREE.SphereGeometry(BALL_RADIUS, 20, 20)
+      const mat = new THREE.MeshStandardMaterial({
+        color: cp.color === 'light' ? COLORS.light : COLORS.dark,
+        transparent: true,
+        opacity: 0.7,
+      })
+      this.ghostBall = new THREE.Mesh(geo, mat)
+      this.dragGroup.add(this.ghostBall)
+
+      const wp = this.screenToPlane(e.clientX, e.clientY)
+      if (wp) this.ghostBall.position.copy(wp)
+      return
+    }
+
     this.onEvent?.({ type: 'click_ball', pos: targetPos })
   }
 
@@ -262,6 +288,41 @@ export class PylosRenderer {
         this.clearGroup(this.highlightGroup)
         this.drawHighlights()
         this.drawDropZone()
+        return
+      }
+
+      if (this.moveDragPos) {
+        const moves = this.state ? getAvailableMovesRaw(this.state) : emptyMoves
+        const hover = this.getTargetAtPointer(e.clientX, e.clientY)
+        const isValid = hover && moves.stackTargets.some(t =>
+          t.x === hover.x && t.y === hover.y && t.level === hover.level &&
+          t.level > this.moveDragPos!.level
+        )
+        this.hoverPos = isValid ? hover : null
+
+        const wp = this.screenToPlane(e.clientX, e.clientY)
+        if (wp && this.ghostBall) {
+          this.ghostBall.position.copy(wp)
+          this.ghostBall.position.y = isValid ? this.ghostBall.position.y + 0.5 : levelY(this.moveDragPos.level) + BALL_RADIUS + 0.5
+        }
+
+        this.clearGroup(this.highlightGroup)
+        this.drawFixedHighlights(moves)
+
+        if (hover && isValid) {
+          const highlightGeo = new THREE.PlaneGeometry(CELL - 0.2, CELL - 0.2)
+          const highlightMat = new THREE.MeshBasicMaterial({
+            color: COLORS.highlightHover,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false,
+          })
+          const mesh = new THREE.Mesh(highlightGeo, highlightMat)
+          const wp2 = posToWorld(hover)
+          mesh.position.set(wp2.x, wp2.y + 0.1, wp2.z)
+          mesh.rotation.x = -Math.PI / 2
+          this.highlightGroup.add(mesh)
+        }
         return
       }
 
@@ -339,6 +400,15 @@ export class PylosRenderer {
         this.onEvent?.({ type: 'click_remove_toggle', pos: this.removeDragPos })
       }
       this.removeDragPos = null
+    }
+
+    if (this.moveDragPos) {
+      if (this.hoverPos) {
+        this.onEvent?.({ type: 'drag_move', from: this.moveDragPos, to: this.hoverPos })
+      } else if (Math.hypot(e.clientX - this.dragStartScreen.x, e.clientY - this.dragStartScreen.y) < 6) {
+        this.onEvent?.({ type: 'click_ball', pos: this.moveDragPos })
+      }
+      this.moveDragPos = null
     }
 
     if (this.hoverPos) {
