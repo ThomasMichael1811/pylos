@@ -479,8 +479,11 @@ export class PylosRenderer {
           for (let x = 0; x < size; x++) {
             const slot = getSlot(board, { level, x, y })
             if (!slot || !slot.ball || slot.ball.color !== cp.color) continue
-            if (hasBallAbove(board, { level, x, y })) continue
-            this.addRemoveHighlight({ level, x, y })
+            if (hasBallAbove(board, { level, x, y })) {
+              this.addCoveredHighlight({ level, x, y })
+            } else {
+              this.addRemoveHighlight({ level, x, y })
+            }
           }
         }
       }
@@ -573,6 +576,22 @@ export class PylosRenderer {
     })
     const mesh = new THREE.Mesh(geo, mat)
     mesh.position.set(wp.x, wp.y + 0.12, wp.z)
+    mesh.rotation.x = -Math.PI / 2
+    this.highlightGroup.add(mesh)
+  }
+
+  private addCoveredHighlight(pos: Position) {
+    const wp = posToWorld(pos)
+    const geo = new THREE.RingGeometry(BALL_RADIUS + 0.05, BALL_RADIUS + 0.25, 32)
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x9e9e9e,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false,
+    })
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.position.set(wp.x, wp.y + 0.1, wp.z)
     mesh.rotation.x = -Math.PI / 2
     this.highlightGroup.add(mesh)
   }

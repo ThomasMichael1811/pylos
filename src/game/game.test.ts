@@ -169,6 +169,25 @@ describe('Versetzen (#12, Constraints)', () => {
     placeBall(s.board, p(1, 2, 2), 'dark')
     expect(executeMoveExisting(s, p(0, 2, 2), p(1, 0, 0))).toBe(false)
   })
+
+  it('bedeckte Kugel wird nicht als versetzbar angeboten (#354)', () => {
+    const s = createInitialState()
+    placeBall(s.board, p(0, 0, 0), 'light')
+    placeBall(s.board, p(0, 1, 0), 'dark')
+    placeBall(s.board, p(0, 0, 1), 'dark')
+    placeBall(s.board, p(0, 1, 1), 'light')
+    placeBall(s.board, p(1, 0, 0), 'dark')
+    placeBall(s.board, p(0, 2, 2), 'light')
+    placeBall(s.board, p(0, 3, 2), 'dark')
+    placeBall(s.board, p(0, 2, 3), 'dark')
+    placeBall(s.board, p(0, 3, 3), 'light')
+    const moveExisting = getAvailableMoves(s).find(m => m.type === 'move_existing')
+    expect(moveExisting).toBeDefined()
+    expect(moveExisting?.targets.some(t => t.level === 0 && t.x === 0 && t.y === 0)).toBe(false)
+    expect(moveExisting?.targets.some(t => t.level === 0 && t.x === 1 && t.y === 1)).toBe(false)
+    expect(moveExisting?.targets.some(t => t.level === 0 && t.x === 2 && t.y === 2)).toBe(true)
+    expect(moveExisting?.targets.some(t => t.level === 0 && t.x === 3 && t.y === 3)).toBe(true)
+  })
 })
 
 describe('Farbquadrat entfernen (#11)', () => {
