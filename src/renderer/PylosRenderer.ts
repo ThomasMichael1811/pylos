@@ -478,9 +478,7 @@ export class PylosRenderer {
             const slot = getSlot(board, { level, x, y })
             if (!slot || !slot.ball || slot.ball.color !== cp.color) continue
             if (hasBallAbove(board, { level, x, y })) continue
-            const pos = { level, x, y }
-            const wp = posToWorld(pos)
-            this.addRemoveHighlight(wp)
+            this.addRemoveHighlight({ level, x, y })
           }
         }
       }
@@ -542,7 +540,8 @@ export class PylosRenderer {
     this.highlightGroup.add(mesh)
   }
 
-  private addRemoveHighlight(wp: THREE.Vector3) {
+  private addRemoveHighlight(pos: Position) {
+    const wp = posToWorld(pos)
     const geo = new THREE.RingGeometry(BALL_RADIUS + 0.05, BALL_RADIUS + 0.25, 32)
     const mat = new THREE.MeshBasicMaterial({
       color: COLORS.highlightRemove,
@@ -554,6 +553,7 @@ export class PylosRenderer {
     const mesh = new THREE.Mesh(geo, mat)
     mesh.position.set(wp.x, wp.y + 0.1, wp.z)
     mesh.rotation.x = -Math.PI / 2
+    mesh.userData.pos = pos
     this.highlightGroup.add(mesh)
   }
 
