@@ -243,6 +243,35 @@ describe('Farbquadrat entfernen (#11)', () => {
   })
 })
 
+describe('Neues Spiel (#352)', () => {
+  it('createInitialState liefert sauberen Startzustand (Reset-Basis)', () => {
+    const s = createInitialState()
+    expect(s.phase).toBe('select_ball')
+    expect(s.currentPlayerIndex).toBe(0)
+    expect(s.players[0].reserve).toBe(15)
+    expect(s.players[1].reserve).toBe(15)
+    expect(s.winner).toBeNull()
+    expect(s.gameOverReason).toBeNull()
+    expect(s.moveCount).toBe(0)
+    for (let level = 0; level < 4; level++) {
+      for (let y = 0; y < (level === 0 ? 4 : level === 1 ? 3 : level === 2 ? 2 : 1); y++) {
+        for (let x = 0; x < (level === 0 ? 4 : level === 1 ? 3 : level === 2 ? 2 : 1); x++) {
+          expect(getBall(s.board, p(level, x, y))).toBeNull()
+        }
+      }
+    }
+    const place = getAvailableMoves(s).find(m => m.type === 'place_from_reserve')
+    expect(place?.targets.length).toBe(16)
+  })
+
+  it('nach Reset: erster Zug platziert helle Kugel', () => {
+    const s = createInitialState()
+    expect(s.currentPlayerIndex).toBe(0)
+    expect(executePlaceReserve(s, p(0, 0, 0))).toBe(true)
+    expect(getBall(s.board, p(0, 0, 0))?.color).toBe('light')
+  })
+})
+
 describe('Spielende (#351)', () => {
   it('Spitze belegt → tip-Sieg für aktuellen Spieler', () => {
     const s = createInitialState()
