@@ -17,6 +17,7 @@ export function createInitialState(): GameStateData {
     currentPlayerIndex: 0,
     phase: 'select_ball',
     winner: null,
+    gameOverReason: null,
     moveCount: 0,
   }
 }
@@ -32,6 +33,11 @@ export function opponentColor(state: GameStateData): BallColor {
 function switchPlayer(state: GameStateData): void {
   state.currentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0
   state.phase = 'select_ball'
+  if (currentPlayer(state).reserve <= 0) {
+    state.winner = opponentColor(state)
+    state.phase = 'game_over'
+    state.gameOverReason = 'empty_reserve'
+  }
 }
 
 function checkGameOver(state: GameStateData): boolean {
@@ -40,20 +46,8 @@ function checkGameOver(state: GameStateData): boolean {
   if (top && top.ball !== null) {
     state.winner = top.ball.color
     state.phase = 'game_over'
+    state.gameOverReason = 'tip'
     return true
-  }
-  const cp = currentPlayer(state)
-  if (cp.reserve <= 0) {
-    const freeSlots = getFreeSlots(board)
-    const stackTargets = getStackTargets(board)
-    if (freeSlots.length === 0 && stackTargets.length === 0) {
-      const movable = getMovableOwnBalls(board, cp.color)
-      if (movable.length === 0) {
-        state.winner = opponentColor(state)
-        state.phase = 'game_over'
-        return true
-      }
-    }
   }
   return false
 }

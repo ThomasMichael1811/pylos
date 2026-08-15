@@ -34,6 +34,7 @@ export interface GameStateData {
   currentPlayerIndex: number
   phase: GamePhase
   winner: BallColor | null
+  gameOverReason: 'tip' | 'empty_reserve' | null
   moveCount: number
 }
 
