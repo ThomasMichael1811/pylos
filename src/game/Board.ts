@@ -114,8 +114,8 @@ export function getStackTargets(board: Slot[][][]): Position[] {
     const aboveSize = getLevelSize(aboveLevel)
     const squares = findSquares(board, level)
     for (const sq of squares) {
-      const tx = Math.floor(sq.x / 2)
-      const ty = Math.floor(sq.y / 2)
+      const tx = sq.x
+      const ty = sq.y
       if (tx >= 0 && tx < aboveSize && ty >= 0 && ty < aboveSize) {
         const target: Position = { level: aboveLevel, x: tx, y: ty }
         if (isFree(board, target)) {
@@ -155,8 +155,8 @@ export function getMovableOwnBalls(board: Slot[][][], color: BallColor): Positio
     if (targetLevel > 3) return false
     return stackTargets.some(t =>
       t.level === targetLevel &&
-      t.x === Math.floor(pos.x / 2) &&
-      t.y === Math.floor(pos.y / 2)
+      t.x === pos.x &&
+      t.y === pos.y
     )
   })
 }

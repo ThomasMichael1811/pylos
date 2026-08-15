@@ -138,8 +138,8 @@ export function executeStackFromReserve(state: GameStateData, pos: Position): bo
   if (!valid) return false
 
   const belowLevel = pos.level - 1
-  const sx = pos.x * 2
-  const sy = pos.y * 2
+  const sx = pos.x
+  const sy = pos.y
   const belowSquare = findSquares(state.board, belowLevel)
   const validSquare = belowSquare.some(sq => sq.x === sx && sq.y === sy)
   if (!validSquare) return false
