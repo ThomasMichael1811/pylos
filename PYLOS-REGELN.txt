@@ -1,0 +1,482 @@
+PYLOS — Spielregeln in reiner Textform
+======================================
+
+Quelle: Offizielle Anleitung, Gigamic, Copyright 1994 Gigamic s.a.
+Konzept: David G. Royffe
+Datei: pylos.pdf (2 Seiten, gefaltetes Heft)
+Diese Datei überträgt den gesamten Regeltext und beschreibt alle
+Abbildungen so, dass das Spiel ohne die Bilder verständlich ist.
+
+
+TEIL 0 — WIE DAS SPIELKÖRPERLICH AUSSIEHT
+-----------------------------------------
+
+Pylos ist ein Strategiespiel für zwei Personen. Es wird mit Kugeln
+gespielt, die man zu einer Pyramide stapelt.
+
+Material:
+- Eine quadratische Holzplatte mit 16 muldenartigen Feldern,
+  angeordnet als Raster 4 mal 4 (vier Reihen, vier Spalten).
+  Jede Mulde nimmt genau eine Kugel auf. Das ist die unterste Ebene,
+  auch „erste Ebene“ oder „Spielplatte“ genannt.
+- 15 helle Kugeln (naturfarbenes Holz, fast weiß / hellbeige).
+- 15 dunkle Kugeln (dunkelbraun).
+- Zusammen 30 Kugeln. Genau so viele braucht eine vollständige
+  Pyramide: 16 auf Ebene 1 + 9 auf Ebene 2 + 4 auf Ebene 3 + 1 Spitze.
+
+Wie die Pyramide räumlich entsteht (ohne Bild):
+
+Stelle dir vier Etagen vor, jede Etage kleiner als die darunter:
+
+  Ebene 1 (unten, auf der Platte):  4 × 4  = 16 Plätze
+  Ebene 2:                          3 × 3  =  9 Plätze
+  Ebene 3:                          2 × 2  =  4 Plätze
+  Ebene 4 (Spitze):                 1 × 1  =  1 Platz
+
+Ein Platz auf einer höheren Ebene existiert nur über einem
+„Kugelquadrat“: vier Kugeln, die auf einer Ebene ein 2×2-Quadrat
+bilden (zwei nebeneinander, zwei direkt dahinter, alle vier
+berühren einander). Auf die Mitte dieses Viererblocks darf eine
+fünfte Kugel gelegt werden. Diese sitzt dann eine Ebene höher,
+genau in der Senke zwischen den vier Kugeln darunter.
+
+Beispiel Ebene 1 → Ebene 2:
+Auf der 4×4-Platte gibt es genau neun mögliche 2×2-Quadrate
+(drei Positionen waagerecht mal drei senkrecht). Jedes solche
+Quadrat trägt genau einen Platz der 3×3-Ebene.
+
+Dasselbe Prinzip gilt weiter nach oben:
+neun Kugeln auf Ebene 2 ergeben vier mögliche Quadrate → Ebene 3;
+vier Kugeln auf Ebene 3 ergeben ein Quadrat → die Spitze.
+
+Eine Kugel, auf der bereits eine höhere Kugel liegt, ist
+„bedeckt“ / „trägt eine andere Kugel“. Sie darf weder versetzt
+noch zurückgenommen werden, solange die höhere Kugel liegt.
+
+
+TEIL 1 — UMSCHLAG (Seite 1 des PDFs)
+------------------------------------
+
+Das Heft ist ein gefalteter Bogen, zwei bedruckte Innenseiten
+nebeneinander, grauer Rand.
+
+Linke Innenseite (Impressum):
+- Logo „GiGamic“: stilisierter Buchstabe G in einem Quadrat.
+- Text:
+    © & © Copyright 1994 GiGamic s.a.
+    Édité par GiGamic s.a.
+    6 Bd du Prince Albert
+    62200 Boulogne sur Mer
+    France
+- Darunter das CE-Zeichen (Conformité Européenne).
+
+Rechte Innenseite (Titelseite):
+- Großer Schriftzug „PYLOS“ mit eingetragenem Markenzeichen.
+- Sprachenliste, links Kürzel, rechts die Bezeichnung „Spielregeln“
+  in der jeweiligen Sprache:
+
+    U.S.A. GB    Rules of the game
+    F            Règles du jeu
+    D            Spielregeln
+    E            Reglas del juego
+    I            Regole del gioco
+    NL           Spelregels
+    P            Regras do jogo
+    JP           (japanisch)
+    S            Spelregler
+    DK           Spilleregler
+    N            Spilleregler
+    SF           Pelisäännöt
+
+- Unten rechts noch einmal das GiGamic-Logo.
+
+
+TEIL 2 — REGELSEITE (Seite 2 des PDFs)
+--------------------------------------
+
+Die Seite ist farbig (grün/grau) und in Kästen gegliedert.
+Oben drei Fotos/Zeichnungen A, B, C.
+In der Mitte ein großer weißer Textkasten mit der Überschrift
+„PYLOS“ (dieser Kasten trägt selbst den Buchstaben D).
+Rechts daneben und darunter die Kästen E und F sowie der
+restliche Regeltext.
+
+Im Folgenden zuerst die Abbildungen, dann der vollständige
+Regeltext.
+
+
+ABBILDUNG A — Startaufstellung / Reserve
+----------------------------------------
+
+Was man sieht:
+Ein Foto von schräg oben auf das echte Holzspiel. Die Platte ist
+quadratisch, dunkelbraun, mit 16 runden Mulden im 4×4-Raster.
+Darauf und daneben liegen helle (naturholzfarbene) und dunkle
+(dunkelbraune) Holzkugeln.
+
+Unten an der Pyramide, vor der Platte bzw. am unteren Rand des
+Fotos, liegen die noch nicht gesetzten Kugeln als zwei Haufen:
+hell und dunkel getrennt. Das ist die Reserve.
+
+Bedeutung:
+So beginnt jede Partie. Alle 30 Kugeln liegen in der Reserve
+(15 hell, 15 dunkel). Die Platte ist leer. Jeder Spieler nimmt
+eine Farbe. Hell zieht zuerst.
+
+Räumliches Bild für den Start:
+  [ leere 4×4-Platte ]
+  darunter / davor:
+  Reserve Hell:  ooooooooooooooo   (15)
+  Reserve Dunkel: ●●●●●●●●●●●●●●●  (15)
+
+
+ABBILDUNG B — Stapeln auf ein Quadrat
+-------------------------------------
+
+Was man sieht:
+Ein Foto der Platte inmitten einer Partie. Viele Kugeln liegen
+bereits. Zwei Zahlen sind eingezeichnet: 1 und 2.
+
+B 1 — Kugel aus der Reserve auf ein Quadrat setzen
+  Vier Kugeln (beliebige Farben) bilden ein 2×2-Quadrat.
+  Der Spieler nimmt eine Kugel aus seiner eigenen Reserve und
+  setzt sie genau in die Senke auf dieses Quadrat. Die neue
+  Kugel liegt eine Ebene höher.
+
+  Skizze (Draufsicht, ● dunkel, o hell, * neue Kugel):
+
+      o ●
+      ● o     ← dieses 2×2-Quadrat ist vollständig
+         \
+          *   ← Reserve-Kugel landet in der Mitte darüber
+
+B 2 — Bereits liegende Kugel höher versetzen
+  Statt eine Reserve-Kugel zu opfern, hebt der Spieler eine
+  eigene, bereits auf der Platte liegende Kugel hoch und setzt
+  sie auf ein Quadrat. Die Kugel muss dabei mindestens eine
+  Ebene steigen. So bleibt die Reserve unangetastet.
+
+  Zusätzliche Bedingung (im Text, im Foto sichtbar durch freie
+  Kugeln ohne Last darauf): Eine Kugel, auf der schon eine
+  andere liegt, darf nicht versetzt werden.
+
+  Skizze:
+
+      Ebene 1:   o ● o ●
+                 ● o ● o      ← eine freie eigene Kugel (z. B. o)
+                 o ● o ●
+                 ● o ● o
+                      \
+      Ebene 2:         o      ← dieselbe Kugel jetzt eine Ebene höher
+                                auf einem 2×2-Quadrat; Reserve unverändert
+
+Bedeutung der ganzen Abbildung B:
+Am Zug stehen drei erlaubte Handlungen zur Wahl
+(siehe Regeltext „Stapeln auf einem Quadrat“):
+  1. Reserve-Kugel auf ein leeres Feld der Platte.
+  2. Reserve-Kugel auf ein bestehendes Quadrat (B 1).
+  3. Eigene unbedeckte Kugel von der Platte auf ein Quadrat
+     höher setzen (B 2) — spart eine Reserve-Kugel.
+
+
+ABBILDUNG C — Quadrat in der eigenen Farbe
+------------------------------------------
+
+Was man sieht:
+Eine etwas schematischere Darstellung, helle Kugeln sind hier
+gelb/gold gezeichnet. Drei Zahlen: 1, 2 und 3.
+
+C 1 — Das eigene Farbquadrat
+  Vier Kugeln derselben Farbe (im Bild die hellen/gelben)
+  bilden ein 2×2-Quadrat. Genau das löst die Sonderregel aus.
+
+  Skizze:
+
+      o o     ← alle vier hell
+      o o     = „Quadrat seiner Farbe“
+
+C 2 — Kugeln zurück in die Reserve
+  Der Spieler, der dieses einfarbige Quadrat soeben gebildet hat,
+  darf sofort eine oder zwei seiner eigenen Kugeln von der Platte
+  nehmen und in seine Reserve legen. Im Bild sieht man, wie
+  Kugeln die Platte verlassen (Pfeil / Handbewegung nach außen).
+
+C 3 — Welche Kugeln darf man nehmen?
+  Nur eigene Farbe. Nur unbedeckte Kugeln (keine andere Kugel
+  liegt darauf). Beliebige Ebene. Auch die gerade gesetzte Kugel
+  selbst ist erlaubt.
+
+Bedeutung:
+Wer ein 2×2 in nur seiner Farbe schließt, bekommt Material zurück.
+Das ist die zentrale Spar-Taktik. Auch wenn ein Zug mehrere
+eigene Farbquadrate gleichzeitig erzeugt, darf man trotzdem
+höchstens zwei Kugeln zurücknehmen.
+
+
+ABBILDUNG D — Der große Regelkasten
+-----------------------------------
+
+D ist kein Spielstand-Foto, sondern der weiße Haupttextkasten
+in der Seitenmitte mit der Überschrift „PYLOS“. Darin stehen
+Vorbereitung, Ziel, Spielverlauf, Stapeln und Farbquadrat.
+Der Wortlaut folgt unten vollständig unter „Regeltext“.
+
+Zusätzlich beschreibt der rechte Textblock dieselbe Idee als
+Drei-Schritt-Zug (siehe auch die Fotos, die zu D gehören):
+
+  D 1  Eine bereits liegende eigene Kugel höher legen.
+  D 2  Dabei entsteht ein Quadrat in der eigenen Farbe.
+  D 3  Sofort eine oder zwei eigene Kugeln entfernen
+       und in die Reserve legen.
+
+Das ist ein einziger Zug: Versetzen + Farbquadrat + Zurücknehmen.
+
+
+ABBILDUNG E — Die fertige Pyramide / Gewinnstellung
+---------------------------------------------------
+
+Was man sieht:
+Ein kleines Foto der vollständigen Pyramide aus allen 30 Kugeln.
+Vier Etagen, oben die einzelne Spitzenkugel. Helle und dunkle
+Kugeln gemischt, je nachdem wer welchen Platz belegt hat.
+
+Räumliches Bild der fertigen Pyramide (von der Seite):
+
+                    *
+                 *     *
+              *     *     *
+           *     *     *     *      ← Spitze = letzte Kugel
+        (jede * steht auf vier Kugeln der Etage darunter)
+
+Draufsicht der vier Ebenen:
+
+  Ebene 1 (16):                    Ebene 2 (9):
+  . . . .                          . . .
+  . . . .                          . . .
+  . . . .                          . . .
+  . . . .
+
+  Ebene 3 (4):                     Ebene 4 (1):
+  . .                              .
+  . .
+
+Bedeutung:
+Wer die letzte Kugel — die Spitze — legt, hat gewonnen.
+Das Foto zeigt genau diesen Endzustand.
+
+
+ABBILDUNG F — Variante „Fluchten“ (Linien)
+------------------------------------------
+
+Was man sieht:
+Eine schematische Zeichnung mit den Zahlen 1 und 2.
+Kugeln in Reihen, nicht als volle Pyramide.
+
+F 1 — Linie auf der ersten Ebene
+  Vier Kugeln derselben Farbe stehen in einer geraden Reihe
+  auf der untersten Ebene (der 4×4-Platte). Das kann eine
+  der vier Waagerechten oder eine der vier Senkrechten sein.
+  Keine Diagonale.
+
+  Skizze Ebene 1, eine gültige Waagerechte:
+
+      o o o o     ← vier Helle in einer Reihe = Flucht
+      . . . .
+      . . . .
+      . . . .
+
+  Ebenso gültig eine Senkrechte:
+
+      o . . .
+      o . . .
+      o . . .
+      o . . .
+
+  Ungültig (Diagonale zählt nicht):
+
+      o . . .
+      . o . .
+      . . o .
+      . . . o
+
+F 2 — Linie auf der zweiten Ebene
+  Drei Kugeln derselben Farbe in einer geraden Reihe auf der
+  3×3-Ebene (waagerecht oder senkrecht, keine Diagonale).
+
+  Skizze Ebene 2:
+
+      o o o     ← drei Helle in einer Reihe = Flucht
+      . . .
+      . . .
+
+Bedeutung:
+In der Variante für Geübte löst nicht nur ein Farbquadrat,
+sondern auch eine solche Flucht das Recht aus, eine oder zwei
+eigene unbedeckte Kugeln zurückzunehmen. Maximal zwei pro Zug.
+Linien zählen nur auf Ebene 1 (Länge 4) und Ebene 2 (Länge 3).
+Ebene 3 und die Spitze bilden keine Linien im Sinne dieser Regel.
+
+
+TEIL 3 — VOLLSTÄNDIGER REGELTEXT (deutsch, aus dem PDF)
+-------------------------------------------------------
+
+Die folgende Fassung folgt dem deutschen Text der Anleitung.
+Offensichtliche Satzzeichen und Umbrüche sind geglättet.
+Wo das PDF und die OCR-Datei PYLOS.md abweichen, gilt das PDF.
+
+
+PRÄSENTATION UND VORBEREITUNG
+
+Eine Pyramidenplatte mit 16 Feldern und je 15 helle und dunkle
+Kugeln.
+
+Zu Beginn des Spiels werden die Kugeln in die Reserve unterhalb
+der Pyramide gelegt (Abbildung A).
+
+Jeder Spieler wählt eine Farbe.
+
+Die helle Farbe beginnt.
+
+
+KONZEPT UND SPIELZIEL
+
+Durch Aufeinanderstapeln bilden die Spieler eine Pyramide aus
+30 Kugeln.
+
+WER DIE LETZTE KUGEL AUF DIE SPITZE LEGT, GEWINNT
+(Abbildung E).
+
+Folgende Regeln ermöglichen es, an Kugeln zu sparen. Gewonnen
+hat der Spieler, der während des Spiels in seiner Reserve die
+meisten Kugeln behalten konnte, um so die letzte Kugel oder die
+letzten Kugeln aufzulegen.
+
+Jeder muss spielen, wenn er an der Reihe ist.
+
+Der Spieler, der keine Kugeln mehr in seiner Reserve hat, hat
+auch verloren.
+
+
+SPIELVERLAUF
+
+Immer abwechselnd legen die Spieler eine Kugel aus der Reserve
+auf ein freies Feld ihrer Wahl.
+
+
+STAPELN AUF EINEM QUADRAT
+
+Wenn auf der Spielplatte oder in den höheren Ebenen ein oder
+mehrere Kugelquadrate gebildet sind, kann sich der Spieler
+dafür entscheiden, eine seiner Kugeln aufzusetzen.
+
+Wenn er am Zug ist, stehen ihm folgende Möglichkeiten zur
+Verfügung:
+
+- eine Kugel aus seiner Reserve auf die Platte setzen.
+- eine Kugel aus seiner Reserve auf eines der Kugelquadrate
+  setzen (Abbildung B 1).
+- eine der bereits gespielten Kugeln auf der Platte versetzen,
+  um sie auf ein Kugelquadrat zu setzen, aber nur, wenn dieses
+  Versetzen die Kugel um eine oder mehrere Ebenen höher bringt
+  (Abbildung B 2). Damit kann er eine Kugel aus seiner Reserve
+  sparen. Eine Kugel auf der Spielplatte kann nicht versetzt
+  werden, wenn bereits eine andere Kugel auf ihr liegt.
+
+
+QUADRAT SEINER FARBE
+
+Ein Spieler, der in seiner Farbe ein Kugelquadrat bildet
+(Abbildung C 1), nimmt sofort eine oder zwei seiner auf der
+Spielplatte liegenden Kugeln und gibt sie in seine Reserve
+(Abbildung C 2).
+
+Hierbei kann er jede Kugel nehmen, die keine andere Kugel trägt
+(auf einer beliebigen Ebene), inklusive der, die er gerade
+gesetzt hat.
+
+Bilden mehrerer Kugelquadrate in seiner Farbe durch Auflegen
+einer Kugel ergibt den Anspruch auf das Entfernen einer oder
+zwei seiner Kugeln.
+
+
+STAPELN UND QUADRAT
+
+Ein Spieler kann in einem Zug dementsprechend:
+
+- eine seiner Kugeln, die sich bereits auf der Platte befindet,
+  höher legen (Abbildung D 1),
+- dabei ein Quadrat in seiner Farbe bilden (Abbildung D 2),
+- sofort eine oder zwei seiner Kugeln entfernen, um sie in
+  seiner Reserve zu legen (Abbildung D 3).
+
+
+SPIELENDE
+
+Gewonnen hat der Spieler, der die letzte Kugel auf die
+Pyramidenspitze legt (Abbildung E).
+
+
+VARIANTE FÜR KINDER
+
+Um sich mit dem Spiel vertraut zu machen, kann man ohne die
+Regel „Quadrat seiner Farbe“ spielen — nur die Stapelregel
+ermöglicht es dann, Kugeln zu sparen.
+
+
+VARIANTE FÜR GEÜBTE SPIELER: FLUCHTEN
+
+Ein Spieler nimmt eine oder zwei seiner Kugeln wieder von der
+Platte, wenn er ein Quadrat oder eine Linie in seiner Farbe
+bildet.
+
+Es gelten nur die Linien, die auf einer einzigen Ebene, und
+zwar auf der ersten oder zweiten Ebene gebaut werden.
+
+Eine gültige Linie besteht aus:
+- Linie mit 4 Kugeln der gleichen Farbe auf der ersten Ebene
+  (Abbildung F 1)
+- Linie mit 3 Kugeln der gleichen Farbe auf der zweiten Ebene
+  (Abbildung F 2)
+
+Eine Diagonale gilt nicht als Linie.
+
+Man kann pro Zug nicht mehr als zwei Kugeln von der Platte
+nehmen.
+
+
+DAUER EINER PARTIE
+
+5 bis 20 Minuten. Beim Turnier kann man jedem Spieler ein
+Zeitlimit auferlegen.
+
+
+Copyright 1994 GIGAMIC s.a. (Nach einem Konzept von David G. Royffe)
+
+
+TEIL 4 — KURZABLAUF EINES ZUGES (zum Nachspielen ohne Bild)
+-----------------------------------------------------------
+
+1. Prüfen: Habe ich noch Reserve-Kugeln?
+   Wenn nein: ich habe verloren.
+2. Erlaubte Handlungen wählen:
+   a) Reserve-Kugel auf ein leeres Feld der 4×4-Platte, oder
+   b) falls mindestens ein unbesetztes Kugelquadrat existiert:
+      Reserve-Kugel auf dieses Quadrat (eine Ebene höher), oder
+   c) falls ein unbesetztes Quadrat existiert und ich eine
+      eigene unbedeckte Kugel habe, die dabei steigt:
+      diese Kugel auf das Quadrat versetzen (Reserve bleibt).
+3. Zug ausführen. Überspringen ist verboten.
+4. Habe ich dadurch ein 2×2 nur in meiner Farbe geschlossen?
+   (In der Kinder-Variante entfällt dieser Schritt.
+    In der Fluchten-Variante zählt zusätzlich eine gerade
+    Linie: 4 auf Ebene 1 oder 3 auf Ebene 2, keine Diagonale.)
+   Wenn ja: 0, 1 oder 2 eigene unbedeckte Kugeln zurück in
+   die Reserve nehmen. Höchstens zwei, auch bei mehreren
+   ausgelösten Quadraten/Linien.
+5. Liegt jetzt eine Kugel auf der Spitze?
+   Wenn ja: ich habe gewonnen.
+6. Sonst ist der andere Spieler am Zug.
+
+
+Ende der Übertragung.
+)
