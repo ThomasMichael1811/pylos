@@ -7,6 +7,12 @@
 - Conventional Commits, Subject-Zeile ≤ 50 Zeichen.
 - Kein `git push` ohne ausdrückliche Aufforderung.
 
+## Tests
+
+- Bei jeder Umsetzung `npm test` ausführen; Ergebnis (echter Output) im Ticket-Kommentar belegen.
+- Coverage: `npm run test:coverage` — Schwellwert ≥ 50 % Line-Coverage auf `src/game/**` (Regelkern). Renderer/UI werden per Browser-Sichtprüfung verifiziert.
+- Jede Ticket-Umsetzung liefert Tests mit (AC „Tests beigefügt").
+
 ## Regeln-Quelle
 
 - `PYLOS-REGELN.txt` ist die verbindliche Textfassung der offiziellen Regeln
