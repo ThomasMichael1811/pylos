@@ -198,8 +198,16 @@ export class PylosRenderer {
     for (const child of this.highlightGroup.children) {
       if (child instanceof THREE.Mesh) {
         const hit = this.raycaster.intersectObject(child, false)
-        if (hit.length > 0) {
-          return child.userData.pos as Position ?? null
+        if (hit.length > 0 && child.userData.pos) {
+          return child.userData.pos as Position
+        }
+      }
+    }
+    for (const child of this.ballGroup.children) {
+      if (child instanceof THREE.Mesh) {
+        const hit = this.raycaster.intersectObject(child, false)
+        if (hit.length > 0 && child.userData.pos) {
+          return child.userData.pos as Position
         }
       }
     }
@@ -235,6 +243,11 @@ export class PylosRenderer {
     const targetPos = this.getTargetAtPointer(e.clientX, e.clientY)
     if (!targetPos) return
     if (this.state.phase === 'remove_own_balls') {
+      const slot = getSlot(this.state.board, targetPos)
+      const cpColor = this.state.players[this.state.currentPlayerIndex].color
+      if (!slot?.ball || slot.ball.color !== cpColor) return
+      if (hasBallAbove(this.state.board, targetPos)) return
+
       this.removeDragPos = targetPos
       this.dragActive = true
       this.dragStartScreen.set(e.clientX, e.clientY)
