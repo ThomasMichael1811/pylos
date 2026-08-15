@@ -53,11 +53,14 @@ export function hasBallAbove(board: Slot[][][], pos: Position): boolean {
   if (level >= 3) return false
   const aboveLevel = level + 1
   const aboveSize = getLevelSize(aboveLevel)
-  const ax = Math.floor(x / 2)
-  const ay = Math.floor(y / 2)
-  if (ax < 0 || ax >= aboveSize || ay < 0 || ay >= aboveSize) return false
-  const above = getSlot(board, { level: aboveLevel, x: ax, y: ay })
-  return above !== null && above.ball !== null
+  for (const ax of [x - 1, x]) {
+    for (const ay of [y - 1, y]) {
+      if (ax < 0 || ax >= aboveSize || ay < 0 || ay >= aboveSize) continue
+      const above = getSlot(board, { level: aboveLevel, x: ax, y: ay })
+      if (above !== null && above.ball !== null) return true
+    }
+  }
+  return false
 }
 
 export function findSquares(board: Slot[][][], level: number): { x: number; y: number }[] {
@@ -150,13 +153,5 @@ export function getMovableOwnBalls(board: Slot[][][], color: BallColor): Positio
   if (stackTargets.length === 0) return []
 
   const balls = getOwnBallsOnBoard(board, color)
-  return balls.filter(pos => {
-    const targetLevel = pos.level + 1
-    if (targetLevel > 3) return false
-    return stackTargets.some(t =>
-      t.level === targetLevel &&
-      t.x === pos.x &&
-      t.y === pos.y
-    )
-  })
+  return balls.filter(pos => stackTargets.some(t => t.level > pos.level))
 }

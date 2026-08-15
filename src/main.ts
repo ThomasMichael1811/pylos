@@ -4,6 +4,7 @@ import {
   executeMoveExisting, executeRemoveBalls,
 } from './game/GameState'
 import { Position } from './game/types'
+import { getStackTargets } from './game/Board'
 import { PylosRenderer, GameEvent } from './renderer/PylosRenderer'
 
 let state = createInitialState()
@@ -100,6 +101,31 @@ function handleEvent(evt: GameEvent) {
 
       const moves = getAvailableMoves(state)
 
+      if (selectedBall && evt.type === 'click_ball') {
+        const ball = selectedBall
+        const isMovableSource = moves.some(m =>
+          m.type === 'move_existing' &&
+          m.targets.some(t => t.x === evt.pos.x && t.y === evt.pos.y && t.level === evt.pos.level)
+        )
+        if (isMovableSource) {
+          selectedBall = evt.pos
+          renderer.updateState(state, [], selectedBall)
+          updateUI()
+          return
+        }
+        const isMoveTarget = getStackTargets(state.board).some(t =>
+          t.x === evt.pos.x && t.y === evt.pos.y && t.level === evt.pos.level &&
+          t.level > ball.level
+        )
+        if (isMoveTarget) {
+          executeMoveExisting(state, ball, evt.pos)
+          selectedBall = null
+          renderer.updateState(state)
+          updateUI()
+          return
+        }
+      }
+
       const isPlace = moves.some(m =>
         m.type === 'place_from_reserve' &&
         m.targets.some(t => t.x === evt.pos.x && t.y === evt.pos.y && t.level === evt.pos.level)
@@ -132,7 +158,7 @@ function handleEvent(evt: GameEvent) {
 
       if (isMovableSource && evt.type === 'click_ball') {
         selectedBall = evt.pos
-        renderer.updateState(state)
+        renderer.updateState(state, [], selectedBall)
         updateUI()
         return
       }

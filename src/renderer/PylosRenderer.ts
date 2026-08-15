@@ -82,6 +82,7 @@ export class PylosRenderer {
   private is3D: boolean = false
   private onEvent: ((evt: GameEvent) => void) | null = null
   private removeSelection: Position[] = []
+  private selectedBall: Position | null = null
 
   private dragActive = false
   private ghostBall: THREE.Mesh | null = null
@@ -306,9 +307,10 @@ export class PylosRenderer {
     this.renderBoard()
   }
 
-  updateState(state: GameStateData, removeSelection: Position[] = []) {
+  updateState(state: GameStateData, removeSelection: Position[] = [], selectedBall: Position | null = null) {
     this.state = state
     this.removeSelection = removeSelection
+    this.selectedBall = selectedBall
     this.renderBoard()
   }
 
@@ -498,6 +500,9 @@ export class PylosRenderer {
     for (const pos of moves.movableBalls) {
       this.addMovableHighlight(pos, COLORS.highlightRemove)
     }
+    if (this.selectedBall) {
+      this.addSelectedBallHighlight(this.selectedBall)
+    }
     for (const sq of moves.allSquares) {
       this.addSquareHighlight(sq.level, sq.x, sq.y, COLORS.highlightAllSquare)
     }
@@ -564,6 +569,22 @@ export class PylosRenderer {
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.85,
+      depthWrite: false,
+    })
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.position.set(wp.x, wp.y + 0.12, wp.z)
+    mesh.rotation.x = -Math.PI / 2
+    this.highlightGroup.add(mesh)
+  }
+
+  private addSelectedBallHighlight(pos: Position) {
+    const wp = posToWorld(pos)
+    const geo = new THREE.RingGeometry(BALL_RADIUS + 0.3, BALL_RADIUS + 0.5, 32)
+    const mat = new THREE.MeshBasicMaterial({
+      color: COLORS.highlightTarget,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9,
       depthWrite: false,
     })
     const mesh = new THREE.Mesh(geo, mat)

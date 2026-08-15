@@ -136,6 +136,39 @@ describe('Versetzen (#12, Constraints)', () => {
     expect(executeMoveExisting(s, p(0, 0, 0), p(0, 3, 3))).toBe(false)
     expect(executeMoveExisting(s, p(0, 0, 0), p(1, 2, 2))).toBe(false)
   })
+
+  it('versetzt Kugel über mehrere Ebenen (PDF B 2)', () => {
+    const s = createInitialState()
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (x === 3 && y === 3) continue
+      placeBall(s.board, p(0, x, y), 'dark')
+    }
+    placeBall(s.board, p(1, 0, 0), 'dark')
+    placeBall(s.board, p(1, 1, 0), 'dark')
+    placeBall(s.board, p(1, 0, 1), 'dark')
+    placeBall(s.board, p(1, 1, 1), 'dark')
+    placeBall(s.board, p(0, 3, 3), 'light')
+    const reserveBefore = s.players[0].reserve
+    expect(executeMoveExisting(s, p(0, 3, 3), p(2, 0, 0))).toBe(true)
+    expect(getBall(s.board, p(0, 3, 3))).toBeNull()
+    expect(getBall(s.board, p(2, 0, 0))?.color).toBe('light')
+    expect(s.players[0].reserve).toBe(reserveBefore)
+    expect(s.currentPlayerIndex).toBe(1)
+  })
+
+  it('Bedeckt-Erkennung passt zur direkten Abbildung: Feld (2,2) deckt Zelle (2,2)', () => {
+    const s = createInitialState()
+    placeBall(s.board, p(0, 0, 0), 'dark')
+    placeBall(s.board, p(0, 1, 0), 'dark')
+    placeBall(s.board, p(0, 0, 1), 'dark')
+    placeBall(s.board, p(0, 1, 1), 'dark')
+    placeBall(s.board, p(0, 2, 2), 'light')
+    placeBall(s.board, p(0, 3, 2), 'dark')
+    placeBall(s.board, p(0, 2, 3), 'dark')
+    placeBall(s.board, p(0, 3, 3), 'dark')
+    placeBall(s.board, p(1, 2, 2), 'dark')
+    expect(executeMoveExisting(s, p(0, 2, 2), p(1, 0, 0))).toBe(false)
+  })
 })
 
 describe('Farbquadrat entfernen (#11)', () => {

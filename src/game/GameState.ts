@@ -158,8 +158,6 @@ export function executeMoveExisting(state: GameStateData, fromPos: Position, toP
   const valid = stackTargets.some(t => t.x === toPos.x && t.y === toPos.y && t.level === toPos.level)
   if (!valid) return false
 
-  if (toPos.level !== fromPos.level + 1) return false
-
   removeBall(state.board, fromPos)
   placeBall(state.board, toPos, cp.color)
   state.moveCount++
