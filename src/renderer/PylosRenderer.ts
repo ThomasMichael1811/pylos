@@ -262,8 +262,9 @@ export class PylosRenderer {
 
     const ballPos = this.getBallAtPointer(e.clientX, e.clientY)
     const hlPos = this.getHighlightAtPointer(e.clientX, e.clientY)
+    const ballCovered = ballPos && this.state ? hasBallAbove(this.state.board, ballPos) : false
     let targetPos: Position | null
-    if (this.selectedBall && hlPos && hlPos.level > (ballPos?.level ?? -1)) {
+    if (hlPos && (!ballPos || (hlPos.level > ballPos.level && (ballCovered || !!this.selectedBall)))) {
       targetPos = hlPos
     } else {
       targetPos = ballPos ?? hlPos
