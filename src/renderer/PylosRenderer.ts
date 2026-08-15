@@ -11,7 +11,7 @@ import {
 const BOARD_SIZE = 4
 const CELL = 1.8
 const BALL_RADIUS = 0.7
-const RESERVE_Z = -5
+const RESERVE_Z = -3.9
 
 const COLORS = {
   light: 0xf0f0f0,
@@ -432,7 +432,7 @@ export class PylosRenderer {
 
   private drawReserve() {
     if (!this.state) return
-    const spacing = BALL_RADIUS * 2.2
+    const spacing = 0.8
 
     for (let pi = 0; pi < 2; pi++) {
       const player = this.state.players[pi]
