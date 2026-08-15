@@ -24,6 +24,19 @@
         </div>
         <div id="turn-indicator">Hell ist am Zug</div>
         <div id="move-options"></div>
+        <details id="legend">
+          <summary>Legende: Ringe &amp; Farben</summary>
+          <ul>
+            <li><span class="swatch sw-ring-blue"></span> Blauer Ring: freies Ziel — Kugel aus Reserve setzen (Ebene 0) oder stapeln (Ebene 1+)</li>
+            <li><span class="swatch sw-ring-red"></span> Roter Ring um eigene Kugel: versetzbar — anklicken zum Auswählen</li>
+            <li><span class="swatch sw-ring-blue-wide"></span> Breiter blauer Ring: Kugel fürs Versetzen gewählt — jetzt blaues Ziel anklicken</li>
+            <li><span class="swatch sw-square-green"></span> Grüne Fläche: vollständiges Quadrat (beliebige Farben) = stapelbar</li>
+            <li><span class="swatch sw-square-yellow"></span> Gelbe Fläche: Quadrat in eigener Farbe = Kugeln zurücknehmen</li>
+            <li><span class="swatch sw-disc-red"></span> Rote Scheibe: Kugel ausgewählt zum Entfernen</li>
+            <li><span class="swatch sw-ring-gray"></span> Grauer Ring: bedeckte Kugel — nicht entfernbar/versetzbar</li>
+            <li><span class="swatch sw-border-active"></span> Sidebar-Rahmen: aktiver Spieler</li>
+          </ul>
+        </details>
         <div id="game-status"></div>
       </div>
       <div id="canvas-container"></div>
