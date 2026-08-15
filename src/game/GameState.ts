@@ -160,8 +160,8 @@ export function executeMoveExisting(state: GameStateData, fromPos: Position, toP
 
   if (toPos.level !== fromPos.level + 1) return false
 
-  placeBall(state.board, toPos, cp.color)
   removeBall(state.board, fromPos)
+  placeBall(state.board, toPos, cp.color)
   state.moveCount++
 
   return afterPlace(state, toPos)
@@ -170,16 +170,12 @@ export function executeMoveExisting(state: GameStateData, fromPos: Position, toP
 function afterPlace(state: GameStateData, pos: Position): boolean {
   if (checkGameOver(state)) return true
 
-  const belowLevels = [0, 1, 2].filter(l => l < pos.level)
   const cpColor = currentPlayer(state).color
-
-  for (const bl of belowLevels) {
-    const squares = findSquares(state.board, bl)
-    for (const sq of squares) {
-      if (isMonochromaticSquare(state.board, bl, sq.x, sq.y, cpColor)) {
-        state.phase = 'remove_own_balls'
-        return true
-      }
+  const squares = findSquares(state.board, pos.level)
+  for (const sq of squares) {
+    if (isMonochromaticSquare(state.board, pos.level, sq.x, sq.y, cpColor)) {
+      state.phase = 'remove_own_balls'
+      return true
     }
   }
 
