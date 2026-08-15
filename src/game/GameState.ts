@@ -4,7 +4,7 @@ import {
 import {
   createBoard, getSlot, isFree, placeBall, removeBall, getFreeSlots,
   findSquares, getStackTargets, getMovableOwnBalls,
-  isMonochromaticSquare, hasBallAbove,
+  isMonochromaticSquare, hasBallAbove, isInSupportingSquare,
 } from './Board'
 
 export function createInitialState(): GameStateData {
@@ -157,6 +157,8 @@ export function executeMoveExisting(state: GameStateData, fromPos: Position, toP
   const stackTargets = getStackTargets(state.board)
   const valid = stackTargets.some(t => t.x === toPos.x && t.y === toPos.y && t.level === toPos.level)
   if (!valid) return false
+
+  if (isInSupportingSquare(fromPos, toPos)) return false
 
   removeBall(state.board, fromPos)
   placeBall(state.board, toPos, cp.color)

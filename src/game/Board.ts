@@ -148,10 +148,20 @@ export function getOwnBallsOnBoard(board: Slot[][][], color: BallColor): Positio
   return balls
 }
 
+export function isInSupportingSquare(pos: Position, target: Position): boolean {
+  if (target.level <= pos.level) return false
+  const below = target.level - 1
+  return pos.level === below &&
+    pos.x >= target.x && pos.x <= target.x + 1 &&
+    pos.y >= target.y && pos.y <= target.y + 1
+}
+
 export function getMovableOwnBalls(board: Slot[][][], color: BallColor): Position[] {
   const stackTargets = getStackTargets(board)
   if (stackTargets.length === 0) return []
 
   const balls = getOwnBallsOnBoard(board, color)
-  return balls.filter(pos => stackTargets.some(t => t.level > pos.level))
+  return balls.filter(pos => stackTargets.some(t =>
+    t.level > pos.level && !isInSupportingSquare(pos, t)
+  ))
 }
