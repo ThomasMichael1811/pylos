@@ -218,3 +218,8 @@ renderer.setOnEvent(handleEvent)
 renderer.updateState(state)
 updateUI()
 renderer.start()
+window.addEventListener('load', () => renderer.resize())
+
+if (import.meta.env.DEV) {
+  ;(window as unknown as { __pylos: () => unknown }).__pylos = () => state
+}

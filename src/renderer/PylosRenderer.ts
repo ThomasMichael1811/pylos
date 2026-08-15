@@ -142,13 +142,10 @@ export class PylosRenderer {
     window.addEventListener('pointermove', this.onPointerMove)
     window.addEventListener('pointerup', this.onPointerUp)
     window.addEventListener('resize', this.onResize)
+    new ResizeObserver(() => this.onResize()).observe(container)
   }
 
-  setOnEvent(cb: (evt: GameEvent) => void) {
-    this.onEvent = cb
-  }
-
-  private onResize = () => {
+  resize() {
     const container = this.renderer.domElement.parentElement
     if (!container) return
     const rect = container.getBoundingClientRect()
@@ -160,6 +157,14 @@ export class PylosRenderer {
     this.camera.bottom = -viewSize / 2
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(rect.width, rect.height)
+  }
+
+  setOnEvent(cb: (evt: GameEvent) => void) {
+    this.onEvent = cb
+  }
+
+  private onResize = () => {
+    this.resize()
   }
 
   private screenToPlane(clientX: number, clientY: number): THREE.Vector3 | null {
@@ -176,8 +181,6 @@ export class PylosRenderer {
 
   private isInReserveArea(clientX: number, clientY: number): boolean {
     const rect = this.renderer.domElement.getBoundingClientRect()
-    const ny = 1 - (clientY - rect.top) / rect.height * 2
-    if (ny < -0.45) return true
     this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1
     this.raycaster.setFromCamera(this.pointer, this.camera)
@@ -195,7 +198,7 @@ export class PylosRenderer {
     this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1
     this.raycaster.setFromCamera(this.pointer, this.camera)
 
-    for (const child of this.highlightGroup.children) {
+    for (const child of this.ballGroup.children) {
       if (child instanceof THREE.Mesh) {
         const hit = this.raycaster.intersectObject(child, false)
         if (hit.length > 0 && child.userData.pos) {
@@ -203,7 +206,7 @@ export class PylosRenderer {
         }
       }
     }
-    for (const child of this.ballGroup.children) {
+    for (const child of this.highlightGroup.children) {
       if (child instanceof THREE.Mesh) {
         const hit = this.raycaster.intersectObject(child, false)
         if (hit.length > 0 && child.userData.pos) {
@@ -605,6 +608,14 @@ export class PylosRenderer {
         this.reserveGroup.add(mesh)
       }
     }
+
+    const zoneGeo = new THREE.PlaneGeometry(30, 2.6)
+    const zoneMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.02, depthWrite: false })
+    const zone = new THREE.Mesh(zoneGeo, zoneMat)
+    zone.position.set(0, -0.35, RESERVE_Z - 0.8)
+    zone.rotation.x = -Math.PI / 2
+    zone.userData.isReserve = true
+    this.reserveGroup.add(zone)
   }
 
   private drawHighlights() {
