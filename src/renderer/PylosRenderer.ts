@@ -137,8 +137,8 @@ export class PylosRenderer {
     this.pointer = new THREE.Vector2()
 
     this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown)
-    this.renderer.domElement.addEventListener('pointermove', this.onPointerMove)
-    this.renderer.domElement.addEventListener('pointerup', this.onPointerUp)
+    window.addEventListener('pointermove', this.onPointerMove)
+    window.addEventListener('pointerup', this.onPointerUp)
     window.addEventListener('resize', this.onResize)
   }
 
@@ -172,10 +172,19 @@ export class PylosRenderer {
     return hit ?? null
   }
 
-  private isInReserveArea(_clientX: number, clientY: number): boolean {
+  private isInReserveArea(clientX: number, clientY: number): boolean {
     const rect = this.renderer.domElement.getBoundingClientRect()
     const ny = 1 - (clientY - rect.top) / rect.height * 2
-    return ny < -0.5
+    if (ny < -0.45) return true
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1
+    this.raycaster.setFromCamera(this.pointer, this.camera)
+    for (const child of this.reserveGroup.children) {
+      if (child instanceof THREE.Mesh && this.raycaster.intersectObject(child, false).length > 0) {
+        return true
+      }
+    }
+    return false
   }
 
   private getTargetAtPointer(clientX: number, clientY: number): Position | null {
@@ -250,6 +259,9 @@ export class PylosRenderer {
       if (this.removeDragPos) {
         const wp = this.screenToPlane(e.clientX, e.clientY)
         if (wp) this.ghostBall.position.copy(wp)
+        this.clearGroup(this.highlightGroup)
+        this.drawHighlights()
+        this.drawDropZone()
         return
       }
 
@@ -276,6 +288,7 @@ export class PylosRenderer {
 
       this.clearGroup(this.highlightGroup)
       this.drawFixedHighlights(moves)
+      this.drawDropZone()
 
       if (hover && isValid) {
         const highlightGeo = new THREE.PlaneGeometry(CELL - 0.2, CELL - 0.2)
@@ -295,8 +308,25 @@ export class PylosRenderer {
     }
 
     if (this.state && this.state.phase === 'select_ball') {
-      this.renderer.domElement.style.cursor = this.getTargetAtPointer(e.clientX, e.clientY) ? 'pointer' : 'default'
+      const overTarget = this.getTargetAtPointer(e.clientX, e.clientY)
+      const overReserve = this.isInReserveArea(e.clientX, e.clientY)
+      this.renderer.domElement.style.cursor = overReserve ? 'grab' : overTarget ? 'pointer' : 'default'
     }
+  }
+
+  private drawDropZone() {
+    const geo = new THREE.PlaneGeometry(30, 2.6)
+    const mat = new THREE.MeshBasicMaterial({
+      color: COLORS.highlightHover,
+      transparent: true,
+      opacity: 0.15,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    })
+    const mesh = new THREE.Mesh(geo, mat)
+    mesh.position.set(0, 0.05, -4.6)
+    mesh.rotation.x = -Math.PI / 2
+    this.highlightGroup.add(mesh)
   }
 
   private onPointerUp = (e: PointerEvent) => {
@@ -489,6 +519,7 @@ export class PylosRenderer {
         })
         const mesh = new THREE.Mesh(geo, mat)
         mesh.position.set(x, -0.3, z)
+        mesh.userData.isReserve = true
         this.reserveGroup.add(mesh)
       }
     }
