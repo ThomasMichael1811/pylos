@@ -40,9 +40,12 @@ const server = createServer((req, res) => {
 
   const joinMatch = url.pathname.match(/^\/api\/games\/([^/]+)\/join$/)
   if (req.method === 'POST' && joinMatch) {
-    const result = joinRoom(joinMatch[1], randomUUID())
-    if ('error' in result) sendJson(res, result.error === 'room full' ? 409 : 404, result)
-    else sendJson(res, 200, { color: result.color })
+    void readBody(req).then((body) => {
+      const pid = String(body.playerId ?? randomUUID())
+      const result = joinRoom(joinMatch[1], pid)
+      if ('error' in result) sendJson(res, result.error === 'room full' ? 409 : 404, result)
+      else sendJson(res, 200, { color: result.color, playerId: pid, ready: result.ready })
+    })
     return
   }
 

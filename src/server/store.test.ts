@@ -11,9 +11,17 @@ beforeEach(() => {
 describe('Server-Store (#365)', () => {
   it('erstellt Raum, vergibt hell/dunkel nach Beitritt, lehnt dritten ab', () => {
     const room = createRoom()
-    expect(joinRoom(room.id, 'a')).toEqual({ color: 'light' })
-    expect(joinRoom(room.id, 'b')).toEqual({ color: 'dark' })
+    expect(joinRoom(room.id, 'a')).toEqual({ color: 'light', ready: false })
+    expect(joinRoom(room.id, 'b')).toEqual({ color: 'dark', ready: true })
     expect(joinRoom(room.id, 'c')).toEqual({ error: 'room full' })
+  })
+
+  it('Rejoin mit derselben playerId liefert dieselbe Farbe', () => {
+    const room = createRoom()
+    joinRoom(room.id, 'a')
+    joinRoom(room.id, 'b')
+    expect(joinRoom(room.id, 'a')).toEqual({ color: 'light', ready: true })
+    expect(joinRoom(room.id, 'b')).toEqual({ color: 'dark', ready: true })
   })
 
   it('unbekannter Raum und Nicht-Spieler werden abgelehnt', () => {

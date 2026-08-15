@@ -19,7 +19,7 @@ export interface Room {
   dark?: string
 }
 
-export type JoinResult = { color: BallColor } | { error: string }
+export type JoinResult = { color: BallColor; ready: boolean } | { error: string }
 export type MoveResult = { ok: true } | { error: string }
 export type RoomEvent =
   | { type: 'state'; state: GameStateData }
@@ -48,14 +48,16 @@ function broadcast(id: string, evt: RoomEvent): void {
 export function joinRoom(id: string, playerId: string): JoinResult {
   const room = rooms.get(id)
   if (!room) return { error: 'room not found' }
+  if (room.light === playerId) return { color: 'light', ready: room.dark !== undefined }
+  if (room.dark === playerId) return { color: 'dark', ready: true }
   if (!room.light) {
     room.light = playerId
-    return { color: 'light' }
+    return { color: 'light', ready: false }
   }
   if (!room.dark) {
     room.dark = playerId
     broadcast(id, { type: 'joined', color: 'dark' })
-    return { color: 'dark' }
+    return { color: 'dark', ready: true }
   }
   return { error: 'room full' }
 }

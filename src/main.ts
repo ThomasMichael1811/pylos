@@ -6,10 +6,15 @@ import {
 import { Position } from './game/types'
 import { getStackTargets, getOwnBallsOnBoard } from './game/Board'
 import { PylosRenderer, GameEvent } from './renderer/PylosRenderer'
+import type { MoveIntent } from './server/store'
 
 let state = createInitialState()
 let selectedBall: Position | null = null
 let removeSelection: Position[] = []
+let onlineMode = false
+let roomId: string | null = null
+let eventSource: EventSource | null = null
+let myColor: 'light' | 'dark' | null = null
 
 const renderer = new PylosRenderer(document.getElementById('canvas-container')!)
 
@@ -33,19 +38,30 @@ function updateUI() {
     const winnerName = state.winner === 'light' ? 'Hell' : 'Dunkel'
     turnText.textContent = `${winnerName} hat gewonnen!`
     moveOptions.innerHTML = ''
-    statusText.innerHTML = '<button id="new-game-btn">Neues Spiel</button>'
-    document.getElementById('new-game-btn')?.addEventListener('click', resetGame)
+    if (onlineMode) {
+      statusText.textContent = 'Partie beendet.'
+    } else {
+      statusText.innerHTML = '<button id="new-game-btn">Neues Spiel</button>'
+      document.getElementById('new-game-btn')?.addEventListener('click', resetGame)
+    }
     return
   }
 
   const cpName = state.currentPlayerIndex === 0 ? 'Hell' : 'Dunkel'
 
   switch (state.phase) {
-    case 'select_ball':
-      turnText.textContent = `${cpName} ist am Zug`
-      statusText.textContent = 'Klicke auf ein blaues Feld oder ziehe eine Kugel aus der Reserve'
+    case 'select_ball': {
+      let turn = `${cpName} ist am Zug`
+      let status = 'Klicke auf ein blaues Feld oder ziehe eine Kugel aus der Reserve'
+      if (onlineMode && myColor) {
+        turn += myTurn() ? ' — dein Zug' : ' — Gegner am Zug'
+        status = myTurn() ? 'Du bist dran: Kugel setzen, stapeln oder versetzen' : 'Warte auf den Zug deines Gegners …'
+      }
+      turnText.textContent = turn
+      statusText.textContent = status
       moveOptions.innerHTML = ''
       break
+    }
     case 'remove_own_balls':
       turnText.textContent = 'Du hast ein Quadrat in deiner Farbe gebildet!'
       statusText.textContent = `Pflicht: Entferne 1 oder 2 deiner Kugeln. Klicke mit der Maus auf eine rot markierte Kugel, dann auf „Entfernen". Ausgewählt: ${removeSelection.length}/2`
@@ -55,16 +71,21 @@ function updateUI() {
         </button>
       `
       document.getElementById('remove-confirm-btn')?.addEventListener('click', () => {
-        executeRemoveBalls(state, removeSelection)
+        if (onlineMode) {
+          sendMove({ type: 'remove', positions: [...removeSelection] })
+        } else {
+          executeRemoveBalls(state, removeSelection)
+          renderer.updateState(state)
+          updateUI()
+        }
         removeSelection = []
-        renderer.updateState(state)
-        updateUI()
       })
       break
   }
 }
 
 function resetGame() {
+  if (onlineMode) return
   state = createInitialState()
   selectedBall = null
   removeSelection = []
@@ -74,14 +95,19 @@ function resetGame() {
 
 function handleEvent(evt: GameEvent) {
   if (state.phase === 'game_over') return
+  if (onlineMode && !myTurn()) return
 
   switch (evt.type) {
     case 'drag_move': {
       if (state.phase !== 'select_ball') return
-      executeMoveExisting(state, evt.from, evt.to)
+      if (onlineMode) {
+        sendMove({ type: 'move', from: evt.from, to: evt.to })
+      } else {
+        executeMoveExisting(state, evt.from, evt.to)
+        renderer.updateState(state)
+        updateUI()
+      }
       selectedBall = null
-      renderer.updateState(state)
-      updateUI()
       return
     }
 
@@ -103,7 +129,11 @@ function handleEvent(evt: GameEvent) {
 
       const removable = getOwnBallsOnBoard(board, cp.color).length
       if (autoRemoveTriggered(removeSelection.length, removable)) {
-        executeRemoveBalls(state, removeSelection)
+        if (onlineMode) {
+          sendMove({ type: 'remove', positions: [...removeSelection] })
+        } else {
+          executeRemoveBalls(state, removeSelection)
+        }
         removeSelection = []
       }
       renderer.updateState(state, removeSelection)
@@ -153,10 +183,14 @@ function handleEvent(evt: GameEvent) {
           t.level > ball.level
         )
         if (isMoveTarget) {
-          executeMoveExisting(state, ball, evt.pos)
+          if (onlineMode) {
+            sendMove({ type: 'move', from: ball, to: evt.pos })
+          } else {
+            executeMoveExisting(state, ball, evt.pos)
+            renderer.updateState(state)
+            updateUI()
+          }
           selectedBall = null
-          renderer.updateState(state)
-          updateUI()
           return
         }
       }
@@ -171,18 +205,26 @@ function handleEvent(evt: GameEvent) {
       )
 
       if (isPlace) {
-        executePlaceReserve(state, evt.pos)
+        if (onlineMode) {
+          sendMove({ type: 'place', pos: evt.pos })
+        } else {
+          executePlaceReserve(state, evt.pos)
+          renderer.updateState(state)
+          updateUI()
+        }
         selectedBall = null
-        renderer.updateState(state)
-        updateUI()
         return
       }
 
       if (isStack) {
-        executeStackFromReserve(state, evt.pos)
+        if (onlineMode) {
+          sendMove({ type: 'stack', pos: evt.pos })
+        } else {
+          executeStackFromReserve(state, evt.pos)
+          renderer.updateState(state)
+          updateUI()
+        }
         selectedBall = null
-        renderer.updateState(state)
-        updateUI()
         return
       }
 
@@ -199,10 +241,14 @@ function handleEvent(evt: GameEvent) {
       }
 
       if (selectedBall && evt.type === 'click_ball') {
-        executeMoveExisting(state, selectedBall, evt.pos)
+        if (onlineMode) {
+          sendMove({ type: 'move', from: selectedBall, to: evt.pos })
+        } else {
+          executeMoveExisting(state, selectedBall, evt.pos)
+          renderer.updateState(state)
+          updateUI()
+        }
         selectedBall = null
-        renderer.updateState(state)
-        updateUI()
         return
       }
 
@@ -220,13 +266,24 @@ updateUI()
 renderer.start()
 window.addEventListener('load', () => renderer.resize())
 
-// ── Online-Lobby (#366) ─────────────────────────────────────────────
+// ── Online-Modus (#366/#367) ────────────────────────────────────────
 const API_BASE = import.meta.env.DEV ? 'http://localhost:8787' : ''
 const lobbyEl = document.getElementById('lobby')!
 const lobbyStatus = document.getElementById('lobby-status')!
-let roomId: string | null = null
-let eventSource: EventSource | null = null
-let myColor: 'light' | 'dark' | null = null
+
+const playerId = (() => {
+  let id = localStorage.getItem('pylos-player')
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem('pylos-player', id)
+  }
+  return id
+})()
+
+function myTurn(): boolean {
+  if (!onlineMode || !myColor) return false
+  return state.players[state.currentPlayerIndex].color === myColor
+}
 
 function lobbyMessage(text: string) {
   lobbyStatus.textContent = text
@@ -236,16 +293,80 @@ function hideLobby() {
   lobbyEl.style.display = 'none'
 }
 
+function startOnlineGame() {
+  onlineMode = true
+  lobbyMessage('Beide Spieler da — Partie beginnt!')
+  setTimeout(hideLobby, 800)
+}
+
+async function sendMove(move: MoveIntent) {
+  if (!roomId) return
+  try {
+    const res = await fetch(`${API_BASE}/api/games/${roomId}/move`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId, move }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      const msg = err.error === 'not your turn' ? 'Warte — du bist nicht am Zug.' : 'Ungültiger Zug.'
+      document.getElementById('game-status')!.textContent = msg
+    }
+  } catch {
+    document.getElementById('game-status')!.textContent = 'Server nicht erreichbar.'
+  }
+}
+
 function connectStream() {
   if (!roomId) return
   eventSource?.close()
   eventSource = new EventSource(`${API_BASE}/api/games/${roomId}/events`)
+  eventSource.addEventListener('state', (e) => {
+    state = JSON.parse((e as MessageEvent).data)
+    renderer.updateState(state, removeSelection, selectedBall)
+    updateUI()
+  })
   eventSource.addEventListener('joined', () => {
-    lobbyMessage('Beide Spieler da — Partie beginnt!')
-    setTimeout(hideLobby, 800)
+    startOnlineGame()
   })
   eventSource.onerror = () => {
     lobbyMessage('Verbindung zum Server unterbrochen …')
+  }
+}
+
+async function joinRoomAs(input: string): Promise<boolean> {
+  const id = input.trim().replace(/.*[?&]room=/, '').replace(/[^a-z0-9]/gi, '')
+  if (!id) {
+    lobbyMessage('Bitte Raum-ID oder Link eingeben.')
+    return false
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/games/${id}/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId }),
+    })
+    if (res.status === 404) {
+      lobbyMessage('Raum nicht gefunden — ID/Link prüfen.')
+      return false
+    }
+    if (res.status === 409) {
+      lobbyMessage('Raum ist voll — beide Plätze belegt.')
+      return false
+    }
+    const data = await res.json()
+    myColor = data.color
+    roomId = id
+    if (data.ready) {
+      startOnlineGame()
+    } else {
+      lobbyMessage(`Du spielst ${myColor === 'light' ? 'Hell' : 'Dunkel'}. Warte auf zweiten Spieler …`)
+    }
+    connectStream()
+    return true
+  } catch {
+    lobbyMessage('Server nicht erreichbar. Läuft `npm run server`?')
+    return false
   }
 }
 
@@ -260,34 +381,8 @@ async function createOnlineRoom() {
     const linkInput = document.getElementById('room-link-input') as HTMLInputElement
     document.getElementById('room-link')!.hidden = false
     linkInput.value = url.toString()
-    lobbyMessage('Warte auf zweiten Spieler …')
-    connectStream()
-  } catch {
-    lobbyMessage('Server nicht erreichbar. Läuft `npm run server`?')
-  }
-}
-
-async function joinOnlineRoom(input: string) {
-  const id = input.trim().replace(/.*[?&]room=/, '').replace(/[^a-z0-9]/gi, '')
-  if (!id) {
-    lobbyMessage('Bitte Raum-ID oder Link eingeben.')
-    return
-  }
-  try {
-    const res = await fetch(`${API_BASE}/api/games/${id}/join`, { method: 'POST' })
-    if (res.status === 404) {
-      lobbyMessage('Raum nicht gefunden — ID/Link prüfen.')
-      return
-    }
-    if (res.status === 409) {
-      lobbyMessage('Raum ist voll — beide Plätze belegt.')
-      return
-    }
-    const data = await res.json()
-    myColor = data.color
-    roomId = id
-    lobbyMessage(`Du spielst ${myColor === 'light' ? 'Hell' : 'Dunkel'}. Warte auf zweiten Spieler …`)
-    connectStream()
+    lobbyMessage('Raum erstellt — Warte auf zweiten Spieler …')
+    await joinRoomAs(roomId)
   } catch {
     lobbyMessage('Server nicht erreichbar. Läuft `npm run server`?')
   }
@@ -295,14 +390,18 @@ async function joinOnlineRoom(input: string) {
 
 document.getElementById('create-room-btn')!.addEventListener('click', createOnlineRoom)
 document.getElementById('join-room-btn')!.addEventListener('click', () => {
-  joinOnlineRoom((document.getElementById('room-input') as HTMLInputElement).value)
+  joinRoomAs((document.getElementById('room-input') as HTMLInputElement).value)
 })
-document.getElementById('lobby-local-btn')!.addEventListener('click', hideLobby)
+document.getElementById('lobby-local-btn')!.addEventListener('click', () => {
+  onlineMode = false
+  myColor = null
+  hideLobby()
+})
 
 const urlRoom = new URLSearchParams(location.search).get('room')
 if (urlRoom) {
   document.getElementById('room-input')!.setAttribute('value', urlRoom)
-  joinOnlineRoom(urlRoom)
+  joinRoomAs(urlRoom)
 }
 
 if (import.meta.env.DEV) {
