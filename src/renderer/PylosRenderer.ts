@@ -31,8 +31,7 @@ function levelY(level: number): number {
 }
 
 function posToWorld(pos: Position): THREE.Vector3 {
-  const size = getLevelSize(pos.level)
-  const ox = (BOARD_SIZE - size) / 2
+  const ox = 1.5 - 0.5 * pos.level
   return new THREE.Vector3(
     (pos.x - ox) * CELL,
     levelY(pos.level),
@@ -381,9 +380,9 @@ export class PylosRenderer {
 
       const gridMat = new THREE.LineBasicMaterial({ color: COLORS.gridLine })
       for (let i = 0; i <= size; i++) {
-        const p = (i + half - 1.5) * CELL
-        const minP = (half - 1.5) * CELL
-        const maxP = (half + size - 1.5) * CELL
+        const p = (i - size / 2) * CELL
+        const minP = -size / 2 * CELL
+        const maxP = size / 2 * CELL
 
         const hPoints = [new THREE.Vector3(minP, y, p), new THREE.Vector3(maxP, y, p)]
         this.boardGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(hPoints), gridMat))
