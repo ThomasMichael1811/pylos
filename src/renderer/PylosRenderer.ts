@@ -5,7 +5,7 @@ import {
 } from '../game/types'
 import {
   getSlot, getFreeSlots, getStackTargets, getMovableOwnBalls,
-  findSquares, isMonochromaticSquare, hasBallAbove,
+  findSquares, isMonochromaticSquare, hasBallAbove, isInSupportingSquare,
 } from '../game/Board'
 
 const BOARD_SIZE = 4
@@ -309,7 +309,8 @@ export class PylosRenderer {
         const hover = this.getTargetAtPointer(e.clientX, e.clientY)
         const isValid = hover && moves.stackTargets.some(t =>
           t.x === hover.x && t.y === hover.y && t.level === hover.level &&
-          t.level > this.moveDragPos!.level
+          t.level > this.moveDragPos!.level &&
+          !isInSupportingSquare(this.moveDragPos!, t)
         )
         this.hoverPos = isValid ? hover : null
 
