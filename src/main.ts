@@ -320,7 +320,7 @@ async function sendMove(move: MoveIntent) {
 function connectStream() {
   if (!roomId) return
   eventSource?.close()
-  eventSource = new EventSource(`${API_BASE}/api/games/${roomId}/events`)
+  eventSource = new EventSource(`${API_BASE}/api/games/${roomId}/events?player=${playerId}`)
   eventSource.addEventListener('state', (e) => {
     state = JSON.parse((e as MessageEvent).data)
     renderer.updateState(state, removeSelection, selectedBall)
@@ -329,8 +329,22 @@ function connectStream() {
   eventSource.addEventListener('joined', () => {
     startOnlineGame()
   })
+  eventSource.addEventListener('rejoined', () => {
+    document.getElementById('game-status')!.textContent = 'Gegner ist wieder da.'
+  })
+  eventSource.addEventListener('disconnected', () => {
+    document.getElementById('game-status')!.textContent = 'Gegner hat die Verbindung verloren — warte auf Rückkehr …'
+  })
+  eventSource.addEventListener('aborted', () => {
+    onlineMode = false
+    myColor = null
+    roomId = null
+    eventSource?.close()
+    lobbyEl.style.display = 'flex'
+    lobbyMessage('Partie abgebrochen — Gegner hat die Verbindung verloren.')
+  })
   eventSource.onerror = () => {
-    lobbyMessage('Verbindung zum Server unterbrochen …')
+    document.getElementById('game-status')!.textContent = 'Verbindung unterbrochen — versuche neu …'
   }
 }
 

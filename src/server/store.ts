@@ -17,6 +17,9 @@ export interface Room {
   state: GameStateData
   light?: string
   dark?: string
+  lightConnected?: boolean
+  darkConnected?: boolean
+  abortTimer?: ReturnType<typeof setTimeout>
 }
 
 export type JoinResult = { color: BallColor; ready: boolean } | { error: string }
@@ -24,6 +27,11 @@ export type MoveResult = { ok: true } | { error: string }
 export type RoomEvent =
   | { type: 'state'; state: GameStateData }
   | { type: 'joined'; color: BallColor }
+  | { type: 'rejoined'; color: BallColor }
+  | { type: 'disconnected'; color: BallColor }
+  | { type: 'aborted' }
+
+export const RECONNECT_WINDOW_MS = 60_000
 
 const rooms = new Map<string, Room>()
 type Listener = (evt: RoomEvent) => void
@@ -100,6 +108,39 @@ export function subscribe(id: string, cb: Listener): () => void {
   if (!set) return () => {}
   set.add(cb)
   return () => set.delete(cb)
+}
+
+export function isPlayer(room: Room, playerId: string): BallColor | null {
+  if (room.light === playerId) return 'light'
+  if (room.dark === playerId) return 'dark'
+  return null
+}
+
+export function setConnected(id: string, playerId: string, connected: boolean): void {
+  const room = rooms.get(id)
+  if (!room) return
+  const color = isPlayer(room, playerId)
+  if (!color) return
+  const wasConnected = color === 'light' ? room.lightConnected : room.darkConnected
+  if (color === 'light') room.lightConnected = connected
+  else room.darkConnected = connected
+
+  if (connected) {
+    if (room.abortTimer) {
+      clearTimeout(room.abortTimer)
+      room.abortTimer = undefined
+    }
+    if (wasConnected === false) broadcast(id, { type: 'rejoined', color })
+    return
+  }
+  broadcast(id, { type: 'disconnected', color })
+  if (!room.lightConnected && !room.darkConnected) {
+    room.abortTimer = setTimeout(() => {
+      broadcast(id, { type: 'aborted' })
+      rooms.delete(id)
+      listeners.delete(id)
+    }, RECONNECT_WINDOW_MS)
+  }
 }
 
 export function resetRoomsForTests(): void {

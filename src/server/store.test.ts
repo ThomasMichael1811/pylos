@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { createRoom, getRoom, joinRoom, applyMove, subscribe, resetRoomsForTests } from './store'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { createRoom, getRoom, joinRoom, applyMove, subscribe, setConnected, resetRoomsForTests } from './store'
 import type { MoveIntent } from './store'
 
 const p = (level: number, x: number, y: number) => ({ level, x, y })
@@ -102,5 +102,48 @@ describe('Server-Store (#365)', () => {
     expect(applyMove(room.id, 'a', remove)).toEqual({ ok: true })
     expect(room.state.board[0][0][0].ball).toBeNull()
     expect(room.state.players[0].reserve).toBe(12)
+  })
+
+  it('Reconnect-Fenster: beide weg → Abbruch nach Timeout, Raum aufgeräumt (#368)', () => {
+    vi.useFakeTimers()
+    try {
+      const room = createRoom()
+      joinRoom(room.id, 'a'); joinRoom(room.id, 'b')
+      const events: string[] = []
+      subscribe(room.id, (evt) => events.push(evt.type))
+      setConnected(room.id, 'a', true)
+      setConnected(room.id, 'b', true)
+      setConnected(room.id, 'b', false)
+      expect(events).toContain('disconnected')
+      setConnected(room.id, 'a', false)
+      vi.advanceTimersByTime(60_000)
+      expect(events).toContain('aborted')
+      expect(getRoom(room.id)).toBeUndefined()
+      expect(joinRoom(room.id, 'a')).toEqual({ error: 'room not found' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('Rejoin innerhalb Fenster verhindert Abbruch, meldet rejoined (#368)', () => {
+    vi.useFakeTimers()
+    try {
+      const room = createRoom()
+      joinRoom(room.id, 'a'); joinRoom(room.id, 'b')
+      const events: string[] = []
+      subscribe(room.id, (evt) => events.push(evt.type))
+      setConnected(room.id, 'a', true)
+      setConnected(room.id, 'b', true)
+      setConnected(room.id, 'a', false)
+      setConnected(room.id, 'b', false)
+      vi.advanceTimersByTime(30_000)
+      setConnected(room.id, 'a', true)
+      expect(events).toContain('rejoined')
+      vi.advanceTimersByTime(90_000)
+      expect(events).not.toContain('aborted')
+      expect(getRoom(room.id)).toBeDefined()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

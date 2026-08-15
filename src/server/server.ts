@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 import { randomUUID } from 'node:crypto'
-import { createRoom, getRoom, joinRoom, applyMove, subscribe } from './store'
+import { createRoom, getRoom, joinRoom, applyMove, subscribe, setConnected, isPlayer } from './store'
 import type { MoveIntent } from './store'
 
 const PORT = Number(process.env.PORT ?? 8787)
@@ -62,10 +62,12 @@ const server = createServer((req, res) => {
   const eventsMatch = url.pathname.match(/^\/api\/games\/([^/]+)\/events$/)
   if (req.method === 'GET' && eventsMatch) {
     const room = getRoom(eventsMatch[1])
-    if (!room) {
+    const pid = url.searchParams.get('player') ?? ''
+    if (!room || !isPlayer(room, pid)) {
       sendJson(res, 404, { error: 'room not found' })
       return
     }
+    setConnected(room.id, pid, true)
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -77,12 +79,15 @@ const server = createServer((req, res) => {
       if (evt.type === 'state') {
         res.write(`id: ${eventId}\nevent: state\ndata: ${JSON.stringify(evt.state)}\n\n`)
       } else {
-        res.write(`id: ${eventId}\nevent: joined\ndata: ${JSON.stringify({ color: evt.color })}\n\n`)
+        res.write(`id: ${eventId}\nevent: ${evt.type}\ndata: ${JSON.stringify({ color: evt.type === 'aborted' ? undefined : evt.color })}\n\n`)
       }
     }
     send({ type: 'state', state: room.state })
     const unsub = subscribe(room.id, send)
-    req.on('close', unsub)
+    req.on('close', () => {
+      unsub()
+      setConnected(room.id, pid, false)
+    })
     return
   }
 
