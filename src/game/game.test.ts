@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   createInitialState, getAvailableMoves,
   executePlaceReserve, executeStackFromReserve, executeMoveExisting,
-  executeRemoveBalls, skipRemoveBalls,
+  executeRemoveBalls,
 } from './GameState'
 import { placeBall, getBall, getStackTargets } from './Board'
 import type { Position } from './types'
@@ -196,17 +196,17 @@ describe('Farbquadrat entfernen (#11)', () => {
     expect(executeRemoveBalls(s, [p(0, 3, 3)])).toBe(false)
   })
 
-  // Hinweis: PDF sagt „nimmt sofort eine oder zwei". Ob „Keine entfernen"
-  // erlaubt ist, ist offene Regelfrage (#11). Test dokumentiert aktuelles Verhalten.
-  it('überspringen beendet Phase und wechselt Spieler (aktuelles Verhalten)', () => {
+  // Entscheidung kb_user (2026-08-15): Es MUSS mindestens 1 Kugel genommen
+  // werden, maximal 2. 0 ist nicht erlaubt — Überspringen existiert nicht.
+  it('0 Kugeln entfernen ist nicht erlaubt', () => {
     const s = createInitialState()
     placeBall(s.board, p(0, 0, 0), 'light')
     placeBall(s.board, p(0, 1, 0), 'light')
     placeBall(s.board, p(0, 0, 1), 'light')
     executePlaceReserve(s, p(0, 1, 1))
-    expect(skipRemoveBalls(s)).toBe(true)
-    expect(s.phase).toBe('select_ball')
-    expect(s.currentPlayerIndex).toBe(1)
+    expect(s.phase).toBe('remove_own_balls')
+    expect(executeRemoveBalls(s, [])).toBe(false)
+    expect(s.phase).toBe('remove_own_balls')
   })
 })
 

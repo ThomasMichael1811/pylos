@@ -185,7 +185,7 @@ function afterPlace(state: GameStateData, pos: Position): boolean {
 
 export function executeRemoveBalls(state: GameStateData, positions: Position[]): boolean {
   if (state.phase !== 'remove_own_balls') return false
-  if (positions.length < 0 || positions.length > 2) return false
+  if (positions.length < 1 || positions.length > 2) return false
 
   const cp = currentPlayer(state)
   for (const pos of positions) {
@@ -199,12 +199,6 @@ export function executeRemoveBalls(state: GameStateData, positions: Position[]):
     cp.reserve++
   }
 
-  switchPlayer(state)
-  return true
-}
-
-export function skipRemoveBalls(state: GameStateData): boolean {
-  if (state.phase !== 'remove_own_balls') return false
   switchPlayer(state)
   return true
 }

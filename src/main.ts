@@ -1,7 +1,7 @@
 import {
   createInitialState, currentPlayer, getAvailableMoves,
   executePlaceReserve, executeStackFromReserve,
-  executeMoveExisting, executeRemoveBalls, skipRemoveBalls,
+  executeMoveExisting, executeRemoveBalls,
 } from './game/GameState'
 import { Position } from './game/types'
 import { PylosRenderer, GameEvent } from './renderer/PylosRenderer'
@@ -47,21 +47,14 @@ function updateUI() {
       break
     case 'remove_own_balls':
       turnText.textContent = 'Du hast ein Quadrat in deiner Farbe gebildet!'
-      statusText.textContent = `Wähle 1 oder 2 deiner Kugeln zum Entfernen. Ausgewählt: ${removeSelection.length}/2`
+      statusText.textContent = `Pflicht: Entferne 1 oder 2 deiner Kugeln. Klicke mit der Maus auf eine rot markierte Kugel, dann auf „Entfernen". Ausgewählt: ${removeSelection.length}/2`
       moveOptions.innerHTML = `
         <button id="remove-confirm-btn" ${removeSelection.length === 0 ? 'disabled' : ''}>
           ${removeSelection.length} Kugel${removeSelection.length !== 1 ? 'n' : ''} entfernen
         </button>
-        <button id="remove-skip-btn">Überspringen</button>
       `
       document.getElementById('remove-confirm-btn')?.addEventListener('click', () => {
         executeRemoveBalls(state, removeSelection)
-        removeSelection = []
-        renderer.updateState(state)
-        updateUI()
-      })
-      document.getElementById('remove-skip-btn')?.addEventListener('click', () => {
-        skipRemoveBalls(state)
         removeSelection = []
         renderer.updateState(state)
         updateUI()
