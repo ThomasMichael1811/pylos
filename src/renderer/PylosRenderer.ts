@@ -62,6 +62,7 @@ export type GameEvent =
   | { type: 'click_select_move'; pos: Position }
   | { type: 'click_move_to'; from: Position; to: Position }
   | { type: 'click_remove_toggle'; pos: Position }
+  | { type: 'drag_remove'; pos: Position }
   | { type: 'drag_place'; pos: Position }
   | { type: 'click_ball'; pos: Position }
 
@@ -88,6 +89,7 @@ export class PylosRenderer {
   private ghostBall: THREE.Mesh | null = null
   private hoverPos: Position | null = null
   private dragStartScreen = new THREE.Vector2()
+  private removeDragPos: Position | null = null
 
   constructor(container: HTMLElement) {
     this.scene = new THREE.Scene()
@@ -163,7 +165,7 @@ export class PylosRenderer {
     this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1
     this.raycaster.setFromCamera(this.pointer, this.camera)
-    const y = this.dragActive ? levelY(this.hoverPos?.level ?? 0) : 0
+    const y = this.dragActive ? levelY(this.hoverPos?.level ?? this.removeDragPos?.level ?? 0) : 0
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -y)
     const target = new THREE.Vector3()
     const hit = this.raycaster.ray.intersectPlane(plane, target)
@@ -222,7 +224,22 @@ export class PylosRenderer {
     const targetPos = this.getTargetAtPointer(e.clientX, e.clientY)
     if (!targetPos) return
     if (this.state.phase === 'remove_own_balls') {
-      this.onEvent?.({ type: 'click_remove_toggle', pos: targetPos })
+      this.removeDragPos = targetPos
+      this.dragActive = true
+      this.dragStartScreen.set(e.clientX, e.clientY)
+
+      const cp = this.state.players[this.state.currentPlayerIndex]
+      const geo = new THREE.SphereGeometry(BALL_RADIUS, 20, 20)
+      const mat = new THREE.MeshStandardMaterial({
+        color: cp.color === 'light' ? COLORS.light : COLORS.dark,
+        transparent: true,
+        opacity: 0.7,
+      })
+      this.ghostBall = new THREE.Mesh(geo, mat)
+      this.dragGroup.add(this.ghostBall)
+
+      const wp = this.screenToPlane(e.clientX, e.clientY)
+      if (wp) this.ghostBall.position.copy(wp)
       return
     }
     this.onEvent?.({ type: 'click_ball', pos: targetPos })
@@ -230,6 +247,12 @@ export class PylosRenderer {
 
   private onPointerMove = (e: PointerEvent) => {
     if (this.dragActive && this.ghostBall) {
+      if (this.removeDragPos) {
+        const wp = this.screenToPlane(e.clientX, e.clientY)
+        if (wp) this.ghostBall.position.copy(wp)
+        return
+      }
+
       const moves = this.state ? getAvailableMovesRaw(this.state) : emptyMoves
       const targets = [
         ...moves.placeTargets,
@@ -276,8 +299,17 @@ export class PylosRenderer {
     }
   }
 
-  private onPointerUp = (_e: PointerEvent) => {
+  private onPointerUp = (e: PointerEvent) => {
     if (!this.dragActive || !this.ghostBall) return
+
+    if (this.removeDragPos) {
+      if (this.isInReserveArea(e.clientX, e.clientY)) {
+        this.onEvent?.({ type: 'drag_remove', pos: this.removeDragPos })
+      } else if (Math.hypot(e.clientX - this.dragStartScreen.x, e.clientY - this.dragStartScreen.y) < 6) {
+        this.onEvent?.({ type: 'click_remove_toggle', pos: this.removeDragPos })
+      }
+      this.removeDragPos = null
+    }
 
     if (this.hoverPos) {
       this.onEvent?.({ type: 'drag_place', pos: this.hoverPos })

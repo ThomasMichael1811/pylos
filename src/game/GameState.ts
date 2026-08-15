@@ -182,6 +182,10 @@ function afterPlace(state: GameStateData, pos: Position): boolean {
   return true
 }
 
+export function autoRemoveTriggered(selectionCount: number, removableCount: number): boolean {
+  return selectionCount >= 2 || removableCount <= 1
+}
+
 export function executeRemoveBalls(state: GameStateData, positions: Position[]): boolean {
   if (state.phase !== 'remove_own_balls') return false
   if (positions.length < 1 || positions.length > 2) return false

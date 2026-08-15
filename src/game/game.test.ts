@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   createInitialState, getAvailableMoves,
   executePlaceReserve, executeStackFromReserve, executeMoveExisting,
-  executeRemoveBalls,
+  executeRemoveBalls, autoRemoveTriggered,
 } from './GameState'
 import { placeBall, getBall, getStackTargets } from './Board'
 import type { Position } from './types'
@@ -270,6 +270,20 @@ describe('Farbquadrat entfernen (#11)', () => {
     expect(s.phase).toBe('remove_own_balls')
     expect(executeRemoveBalls(s, [])).toBe(false)
     expect(s.phase).toBe('remove_own_balls')
+  })
+})
+
+describe('Drag & Drop Auto-Remove (#356)', () => {
+  it('2 gewählte Kugeln lösen Entfernen aus', () => {
+    expect(autoRemoveTriggered(2, 5)).toBe(true)
+  })
+
+  it('nur 1 entfernbare Kugel vorhanden → direkt entfernen', () => {
+    expect(autoRemoveTriggered(1, 1)).toBe(true)
+  })
+
+  it('1 gewählte von mehreren → kein Auto-Entfernen', () => {
+    expect(autoRemoveTriggered(1, 3)).toBe(false)
   })
 })
 

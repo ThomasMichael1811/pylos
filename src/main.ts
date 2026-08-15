@@ -1,10 +1,10 @@
 import {
   createInitialState, currentPlayer, getAvailableMoves,
   executePlaceReserve, executeStackFromReserve,
-  executeMoveExisting, executeRemoveBalls,
+  executeMoveExisting, executeRemoveBalls, autoRemoveTriggered,
 } from './game/GameState'
 import { Position } from './game/types'
-import { getStackTargets } from './game/Board'
+import { getStackTargets, getOwnBallsOnBoard } from './game/Board'
 import { PylosRenderer, GameEvent } from './renderer/PylosRenderer'
 
 let state = createInitialState()
@@ -76,6 +76,32 @@ function handleEvent(evt: GameEvent) {
   if (state.phase === 'game_over') return
 
   switch (evt.type) {
+    case 'drag_remove': {
+      if (state.phase !== 'remove_own_balls') return
+      const board = state.board
+      const cp = currentPlayer(state)
+      const slot = board[evt.pos.level]?.[evt.pos.y]?.[evt.pos.x]
+      if (!slot?.ball || slot.ball.color !== cp.color) return
+
+      const idx = removeSelection.findIndex(p =>
+        p.x === evt.pos.x && p.y === evt.pos.y && p.level === evt.pos.level
+      )
+      if (idx >= 0) {
+        removeSelection.splice(idx, 1)
+      } else if (removeSelection.length < 2) {
+        removeSelection.push(evt.pos)
+      }
+
+      const removable = getOwnBallsOnBoard(board, cp.color).length
+      if (autoRemoveTriggered(removeSelection.length, removable)) {
+        executeRemoveBalls(state, removeSelection)
+        removeSelection = []
+      }
+      renderer.updateState(state, removeSelection)
+      updateUI()
+      return
+    }
+
     case 'click_remove_toggle': {
       const board = state.board
       const cp = currentPlayer(state)
