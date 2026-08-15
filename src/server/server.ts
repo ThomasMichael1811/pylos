@@ -2,7 +2,6 @@ import { createServer } from 'node:http'
 import { randomUUID } from 'node:crypto'
 import { createRoom, getRoom, joinRoom, applyMove, subscribe } from './store'
 import type { MoveIntent } from './store'
-import type { GameStateData } from '../game/types'
 
 const PORT = Number(process.env.PORT ?? 8787)
 
@@ -70,11 +69,15 @@ const server = createServer((req, res) => {
       Connection: 'keep-alive',
     })
     let eventId = 0
-    const send = (state: GameStateData) => {
+    const send = (evt: import('./store').RoomEvent) => {
       eventId++
-      res.write(`id: ${eventId}\nevent: state\ndata: ${JSON.stringify(state)}\n\n`)
+      if (evt.type === 'state') {
+        res.write(`id: ${eventId}\nevent: state\ndata: ${JSON.stringify(evt.state)}\n\n`)
+      } else {
+        res.write(`id: ${eventId}\nevent: joined\ndata: ${JSON.stringify({ color: evt.color })}\n\n`)
+      }
     }
-    send(room.state)
+    send({ type: 'state', state: room.state })
     const unsub = subscribe(room.id, send)
     req.on('close', unsub)
     return

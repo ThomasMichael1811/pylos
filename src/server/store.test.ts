@@ -57,16 +57,18 @@ describe('Server-Store (#365)', () => {
     expect(getRoom(r2.id)?.state.board[0][3][3].ball?.color).toBe('light')
   })
 
-  it('Subscriptions feuern bei Zügen, Unsubscribe stoppt', () => {
+  it('Subscriptions feuern bei Beitritt und Zügen, Unsubscribe stoppt', () => {
     const room = createRoom()
-    joinRoom(room.id, 'a'); joinRoom(room.id, 'b')
-    let events = 0
-    const unsub = subscribe(room.id, () => { events++ })
+    joinRoom(room.id, 'a')
+    const events: string[] = []
+    const unsub = subscribe(room.id, (evt) => { events.push(evt.type) })
+    joinRoom(room.id, 'b')
+    expect(events).toEqual(['joined'])
     applyMove(room.id, 'a', { type: 'place', pos: p(0, 0, 0) })
-    expect(events).toBe(1)
+    expect(events).toEqual(['joined', 'state'])
     unsub()
     applyMove(room.id, 'b', { type: 'place', pos: p(0, 1, 0) })
-    expect(events).toBe(1)
+    expect(events).toEqual(['joined', 'state'])
   })
 
   it('komplette Partie: Farbquadrat → Entfernen-Phase → remove', () => {

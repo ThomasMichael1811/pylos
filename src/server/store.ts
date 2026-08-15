@@ -21,9 +21,12 @@ export interface Room {
 
 export type JoinResult = { color: BallColor } | { error: string }
 export type MoveResult = { ok: true } | { error: string }
+export type RoomEvent =
+  | { type: 'state'; state: GameStateData }
+  | { type: 'joined'; color: BallColor }
 
 const rooms = new Map<string, Room>()
-type Listener = (state: GameStateData) => void
+type Listener = (evt: RoomEvent) => void
 const listeners = new Map<string, Set<Listener>>()
 
 export function createRoom(): Room {
@@ -38,6 +41,10 @@ export function getRoom(id: string): Room | undefined {
   return rooms.get(id)
 }
 
+function broadcast(id: string, evt: RoomEvent): void {
+  for (const cb of listeners.get(id) ?? []) cb(evt)
+}
+
 export function joinRoom(id: string, playerId: string): JoinResult {
   const room = rooms.get(id)
   if (!room) return { error: 'room not found' }
@@ -47,6 +54,7 @@ export function joinRoom(id: string, playerId: string): JoinResult {
   }
   if (!room.dark) {
     room.dark = playerId
+    broadcast(id, { type: 'joined', color: 'dark' })
     return { color: 'dark' }
   }
   return { error: 'room full' }
@@ -81,7 +89,7 @@ export function applyMove(id: string, playerId: string, move: MoveIntent): MoveR
 
   if (!ok) return { error: 'invalid move' }
 
-  for (const cb of listeners.get(id) ?? []) cb(s)
+  broadcast(id, { type: 'state', state: s })
   return { ok: true }
 }
 

@@ -17,6 +17,65 @@ body {
   width: 100vw;
 }
 
+#lobby {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(26, 26, 46, 0.97);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+#lobby h2 {
+  font-size: 26px;
+  color: #e94560;
+  letter-spacing: 2px;
+}
+
+.lobby-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#lobby button,
+#lobby input {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+}
+
+#lobby button {
+  background: #e94560;
+  color: #fff;
+  cursor: pointer;
+}
+
+#lobby input {
+  background: #0f3460;
+  color: #eee;
+  border: 1px solid #4fc3f7;
+  width: 260px;
+}
+
+#room-link input {
+  width: 320px;
+}
+
+#lobby-status {
+  min-height: 22px;
+  color: #4fc3f7;
+  font-size: 14px;
+}
+
 #sidebar {
   width: 260px;
   padding: 24px 16px;

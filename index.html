@@ -8,6 +8,23 @@
   </head>
   <body>
     <div id="app">
+      <div id="lobby">
+        <h2>Pylos online</h2>
+        <p>Spiele gegen eine andere Person über einen Server — oder lokal am selben Bildschirm.</p>
+        <div class="lobby-row">
+          <button id="create-room-btn">Neue Partie erstellen</button>
+          <button id="lobby-local-btn">Lokale Partie (Hot-Seat)</button>
+        </div>
+        <div id="room-link" hidden>
+          Einladungslink (an Gegner senden):
+          <input id="room-link-input" readonly />
+        </div>
+        <div class="lobby-row">
+          <input id="room-input" placeholder="Raum-ID oder Link" />
+          <button id="join-room-btn">Beitreten</button>
+        </div>
+        <div id="lobby-status"></div>
+      </div>
       <div id="sidebar">
         <h1>Pylos</h1>
         <div id="player-info">
