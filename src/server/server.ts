@@ -1,9 +1,23 @@
 import { createServer } from 'node:http'
 import { randomUUID } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
+import { extname, join, normalize } from 'node:path'
 import { createRoom, getRoom, joinRoom, applyMove, subscribe, setConnected, isPlayer } from './store'
 import type { MoveIntent } from './store'
 
 const PORT = Number(process.env.PORT ?? 8787)
+const STATIC_DIR = process.env.STATIC_DIR
+
+const MIME: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.txt': 'text/plain; charset=utf-8',
+}
 
 function sendJson(res: import('node:http').ServerResponse, code: number, body: unknown) {
   res.writeHead(code, { 'Content-Type': 'application/json' })
@@ -20,7 +34,7 @@ function readBody(req: import('node:http').IncomingMessage): Promise<Record<stri
   })
 }
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -31,6 +45,11 @@ const server = createServer((req, res) => {
   }
 
   const url = new URL(req.url ?? '/', 'http://localhost')
+
+  if (req.method === 'GET' && url.pathname === '/health') {
+    sendJson(res, 200, { ok: true })
+    return
+  }
 
   if (req.method === 'POST' && url.pathname === '/api/games') {
     const room = createRoom()
@@ -91,9 +110,39 @@ const server = createServer((req, res) => {
     return
   }
 
+  if (req.method === 'GET' && !url.pathname.startsWith('/api') && STATIC_DIR) {
+    const requested = url.pathname === '/' ? 'index.html' : url.pathname.slice(1)
+    const base = normalize(STATIC_DIR)
+    const safe = normalize(join(base, requested))
+    if (!safe.startsWith(base)) {
+      sendJson(res, 404, { error: 'not found' })
+      return
+    }
+    try {
+      const data = await readFile(safe)
+      res.writeHead(200, { 'Content-Type': MIME[extname(safe)] ?? 'application/octet-stream' })
+      res.end(data)
+    } catch {
+      try {
+        const idx = await readFile(join(base, 'index.html'))
+        res.writeHead(200, { 'Content-Type': MIME['.html'] })
+        res.end(idx)
+      } catch {
+        sendJson(res, 404, { error: 'not found' })
+      }
+    }
+    return
+  }
+
   sendJson(res, 404, { error: 'not found' })
 })
 
 server.listen(PORT, () => {
-  console.log(`pylos-server listening on :${PORT}`)
+  console.log(`pylos-server listening on :${PORT}${STATIC_DIR ? ` (static: ${STATIC_DIR})` : ''}`)
+})
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM — closing server')
+  server.close(() => process.exit(0))
+  setTimeout(() => process.exit(0), 5000).unref()
 })

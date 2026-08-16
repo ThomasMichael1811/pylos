@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.vite
+e2e
+playwright-report
+test-results
+.git
+.gitignore
+Dockerfile
+.dockerignore
+*.md
+pylos.pdf
+PYLOS.md
