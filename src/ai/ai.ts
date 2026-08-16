@@ -114,6 +114,9 @@ export function chooseMove(state: GameStateData, level: AiLevel, rng: () => numb
   if (level === 'mittel') {
     return greedyBest(state, rng)
   }
+  if (level === 'schwer') {
+    return minimaxBest(state, rng)
+  }
   throw new Error(`Stufe "${level}" noch nicht implementiert`)
 }
 
@@ -158,6 +161,91 @@ export function moveFormsSquare(state: GameStateData, move: MoveIntent): boolean
   const clone = cloneState(state)
   if (!applyMove(clone, move)) return false
   return clone.phase === 'remove_own_balls'
+}
+
+// ── Stufe Schwer: Minimax mit Alpha-Beta (#377) ─────────────────────
+
+const TIMEOUT = Symbol('timeout')
+
+/** Zug-Sortierung für Cutoffs: remove/stack/move vor place. */
+export function orderMoves(moves: MoveIntent[]): MoveIntent[] {
+  const rank = (m: MoveIntent) => (m.type === 'remove' ? 0 : m.type === 'stack' ? 1 : m.type === 'move' ? 2 : 3)
+  return [...moves].sort((a, b) => rank(a) - rank(b))
+}
+
+export interface MinimaxCtx {
+  nodes: number
+  start: number
+  prune: boolean
+  timeLimitMs: number
+}
+
+export function minimax(
+  state: GameStateData,
+  depth: number,
+  alpha: number,
+  beta: number,
+  maximizing: boolean,
+  color: BallColor,
+  ctx: MinimaxCtx,
+): number {
+  ctx.nodes++
+  if (ctx.nodes % 512 === 0 && Date.now() - ctx.start > ctx.timeLimitMs) throw TIMEOUT
+  if (depth === 0 || state.phase === 'game_over') return evaluate(state, color)
+
+  const moves = orderMoves(enumerateMoves(state))
+  let value = maximizing ? -Infinity : Infinity
+  for (const m of moves) {
+    const clone = cloneState(state)
+    if (!applyMove(clone, m)) continue
+    // remove_own_balls gehört weiter demselben Spieler → gleiches maximizing
+    const samePlayer = clone.phase === 'remove_own_balls'
+    const child = minimax(clone, depth - 1, alpha, beta, samePlayer ? maximizing : !maximizing, color, ctx)
+    if (maximizing) {
+      if (child > value) value = child
+      if (ctx.prune && value > alpha) alpha = value
+    } else {
+      if (child < value) value = child
+      if (ctx.prune && value < beta) beta = value
+    }
+    if (ctx.prune && beta <= alpha) break
+  }
+  if (value === Infinity || value === -Infinity) return evaluate(state, color)
+  return value
+}
+
+/** Minimax auf Wurzel-Ebene: Tiefe 3 mit Fallback auf Tiefe 2 bei Zeitlimit. */
+export function minimaxBest(state: GameStateData, rng: () => number, depth = 3, timeLimitMs = 1500): MoveIntent {
+  const color = state.players[state.currentPlayerIndex].color
+  const start = Date.now()
+  let d = depth
+  while (d >= 2) {
+    const ctx: MinimaxCtx = { nodes: 0, start, prune: true, timeLimitMs }
+    let best = -Infinity
+    const bestMoves: MoveIntent[] = []
+    try {
+      for (const m of orderMoves(enumerateMoves(state))) {
+        const clone = cloneState(state)
+        if (!applyMove(clone, m)) continue
+        const samePlayer = clone.phase === 'remove_own_balls'
+        const score = minimax(clone, d - 1, -Infinity, Infinity, samePlayer ? true : false, color, ctx)
+        if (score > best) {
+          best = score
+          bestMoves.length = 0
+          bestMoves.push(m)
+        } else if (score === best) {
+          bestMoves.push(m)
+        }
+      }
+      if (bestMoves.length > 0) {
+        return bestMoves[Math.floor(rng() * bestMoves.length)]
+      }
+    } catch (e) {
+      if (e !== TIMEOUT) throw e
+    }
+    d--
+  }
+  return greedyBest(state, rng)
 }
 
 export function cloneState(state: GameStateData): GameStateData {

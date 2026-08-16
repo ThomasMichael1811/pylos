@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { createInitialState } from '../game/GameState'
 import { placeBall } from '../game/Board'
 import {
-  enumerateMoves, evaluate, chooseMove, createRng, cloneState, applyMove, moveFormsSquare, greedyBest,
+  enumerateMoves, evaluate, chooseMove, createRng, cloneState, applyMove, moveFormsSquare, greedyBest, minimax,
 } from './ai'
 import type { AiLevel } from './ai'
 import type { GameStateData, Position, BallColor } from '../game/types'
@@ -80,9 +80,10 @@ describe('KI-Architektur (#374)', () => {
     expect(applyMove(cloneState(s), m1)).toBe(true)
   })
 
-  it('schwer: noch nicht implementiert → Fehler', () => {
+  it('schwer liefert legalen Zug (#377)', () => {
     const s = createInitialState()
-    expect(() => chooseMove(s, 'schwer')).toThrow(/noch nicht implementiert/)
+    const move = chooseMove(s, 'schwer', createRng(5))
+    expect(applyMove(cloneState(s), move)).toBe(true)
   })
 
   it('Leicht: 100 Zufallszüge aus zufälligen Stellungen alle legal (#375)', () => {
@@ -164,6 +165,56 @@ describe('KI-Architektur (#374)', () => {
     const move = greedyBest(s, createRng(1))
     expect(applyMove(cloneState(s), move)).toBe(true)
   })
+
+  it('Alpha-Beta pruned deutlich weniger Knoten als ohne Pruning (#377)', () => {
+    const s = createInitialState()
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (x === 3 && y === 3) continue
+      placeBall(s.board, p(0, x, y), y % 2 === 0 ? 'light' : 'dark')
+    }
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+      placeBall(s.board, p(1, x, y), (x + y) % 2 === 0 ? 'light' : 'dark')
+    }
+    const start = Date.now()
+    const pruned = { nodes: 0, start, prune: true, timeLimitMs: 60_000 }
+    minimax(s, 3, -Infinity, Infinity, true, 'light', pruned)
+    const plain = { nodes: 0, start: Date.now(), prune: false, timeLimitMs: 60_000 }
+    minimax(s, 3, -Infinity, Infinity, true, 'light', plain)
+    expect(pruned.nodes).toBeLessThan(plain.nodes)
+  })
+
+  it('Schwer: Antwortzeit < 2 s in fortgeschrittener Stellung', () => {
+    const s = createInitialState()
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (x === 3 && y === 3) continue
+      placeBall(s.board, p(0, x, y), y % 2 === 0 ? 'light' : 'dark')
+    }
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+      placeBall(s.board, p(1, x, y), (x + y) % 2 === 0 ? 'light' : 'dark')
+    }
+    const start = Date.now()
+    const move = chooseMove(s, 'schwer', createRng(4))
+    expect(applyMove(cloneState(s), move)).toBe(true)
+    expect(Date.now() - start).toBeLessThan(2000)
+  })
+
+  it('Selbstspiel: Schwer schlägt Mittel deutlich (#377)', () => {
+    let schwerWins = 0
+    const games = 6
+    for (let g = 0; g < games; g++) {
+      const s = createInitialState()
+      const rng = createRng(500 + g)
+      let guard = 0
+      while (s.phase !== 'game_over' && guard++ < 400) {
+        const level: AiLevel = s.currentPlayerIndex === (g % 2) ? 'schwer' : 'mittel'
+        const move = chooseMove(s, level, rng)
+        if (!applyMove(s, move)) throw new Error('illegaler Zug im Selbstspiel')
+      }
+      const schwerColor: BallColor = (g % 2) === 0 ? 'light' : 'dark'
+      if (s.winner === schwerColor) schwerWins++
+    }
+    expect(schwerWins).toBeGreaterThan(games * 0.6)
+  }, 120_000)
 })
 
 function isOwnSupportingSquare(from: Position, to: Position): boolean {
