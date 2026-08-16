@@ -33,3 +33,11 @@ ingress:
 
 # Optional: Service als NodePort exposen (z. B. k3d-Smoke-Tests ohne Ingress).
 nodePort: null
+
+# Zugriffsschutz (ADR adr-pylos-auth-edge-basic): Traefik BasicAuth.
+auth:
+  enabled: false
+  # htpasswd-Zeile (bcrypt), z. B. erzeugt mit:
+  #   docker run --rm httpd:2.4-alpine htpasswd -nbB benutzername passwort
+  # NIEMALS Klartext-Passwort committen — Wert per --set-file/--set übergeben.
+  users: ""

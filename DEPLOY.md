@@ -49,9 +49,27 @@ helm install traefik traefik/traefik -n kube-system
 Hinweise aus der Praxis:
 - Wenn Port 80 beim Clusterstart belegt war (z. B. durch crc), bindet die
   k3d-serverlb ihn nicht — nach Freigabe hilft:
-  `docker restart k3d-<clustername>-serverlb`.
+  `docker restart k3d-gitops-playground-serverlb`.
 - `nip.io` muss im Netz auflösbar sein; sonst `/etc/hosts`-Eintrag setzen:
   `127.0.0.1 pylos.127.0.0.1.nip.io`.
+
+### Zugriffsschutz (Basic Auth, ADR adr-pylos-auth-edge-basic)
+
+```bash
+# htpasswd-Zeile erzeugen (bcrypt, kein Klartext im Repo):
+HASH=$(docker run --rm httpd:2.4-alpine htpasswd -nbB benutzername passwort)
+
+helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
+  --set auth.enabled=true --set auth.users="$HASH" \
+  --set ingress.enabled=true --set ingress.host=pylos.127.0.0.1.nip.io
+```
+
+- Auth greift am Edge (Ingress/Traefik): ohne Credentials 401, mit
+  Credentials App + SSE erreichbar.
+- **Achtung:** NodePort geht DIREKT zum Pod und umgeht die Auth —
+  bei Auth-Betrieb `--set nodePort=null` setzen.
+- TLS fehlt noch (#385) — Basic Auth über HTTP überträgt Credentials im
+  Klartext, vor Produktion TLS aktivieren.
 
 ## Container-Layout
 
