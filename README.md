@@ -75,6 +75,31 @@ docker run -d --name pylos -p 8787:8787 pylos:1.0   # http://localhost:8787/
 
 Kubernetes: Helm-Chart in `deploy/pylos`. Lokales k3d-Deployment (Cluster `<clustername>`) inkl. Image-Import und Port-Forward: siehe [`DEPLOY.md`](DEPLOY.md). Produktiv-Ziel: Oracle Free Tier + k3s, siehe ADR `adr-pylos-hosting-evaluierung`.
 
+## Zugriffsschutz (Basic Auth)
+
+Die Anwendung kann am Edge (Traefik) per Benutzername/Passwort geschützt werden — Details: ADR `adr-pylos-auth-edge-basic`, Helm-Werte `auth.enabled`/`auth.users`.
+
+**Benutzer anlegen (anonymisiertes Beispiel):**
+
+```bash
+# Hash pro Benutzer erzeugen (bcrypt — Klartext-Passwörter nie ins Repo)
+docker run --rm httpd:2.4-alpine htpasswd -nbB <benutzername> <passwort>
+
+# Alle Benutzer in eine Datei sammeln (eine htpasswd-Zeile pro User)
+# users.txt:
+#   benutzer1:$2y$...
+#   benutzer2:$2y$...
+
+# Ins Cluster übernehmen
+helm upgrade pylos deploy/pylos -n pylos \
+  --set auth.enabled=true \
+  --set-file auth.users=users.txt \
+  --set ingress.enabled=true \
+  --set ingress.host=pylos.127.0.0.1.nip.io
+```
+
+Danach: ohne Credentials → 401, mit gültigem Benutzer/Passwort → App + SSE erreichbar. Neue Benutzer = Zeile in `users.txt` ergänzen und `helm upgrade` wiederholen. Hinweis: NodePort umgeht die Auth (direkt zum Pod) — bei Auth-Betrieb `--set nodePort=null`. Social Login (GitHub/GitLab/Apple/Google) ist als OIDC-Ausbau tickettiert (#397).
+
 ## Entwicklung
 
 - **Commits:** Conventional Commits, ohne GPG-Signatur (`git commit --no-gpg-sign`), kein Push ohne Aufforderung — siehe `AGENTS.md`.
