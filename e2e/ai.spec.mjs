@@ -68,6 +68,16 @@ export async function run() {
       const s = await state(page)
       assert(s.phase === 'game_over' && s.winner, `Partie endete nicht (moves=${moves}, phase=${s.phase})`)
       console.log(`ai: OK (Sieger: ${s.winner} nach ${moves} Schleifen)`)
+
+      // #398: Stufe nach Spielende neu wählen und neues KI-Spiel starten
+      await page.selectOption('#ai-level-re', 'schwer')
+      await page.click('#new-ai-game-btn')
+      await page.waitForTimeout(400)
+      const s2 = await state(page)
+      assert(s2.moveCount === 0 && s2.phase === 'select_ball', 'Neues KI-Spiel startet frisch')
+      const turn = await page.evaluate(() => document.getElementById('turn-indicator').textContent)
+      assert(turn.includes('schwer'), `Stufe übernommen (war: ${turn})`)
+      console.log('ai: Neustart mit neuer Stufe OK')
     } finally {
       await ctx.close().catch(() => {})
     }

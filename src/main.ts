@@ -41,7 +41,22 @@ function updateUI() {
     const winnerName = state.winner === 'light' ? 'Hell' : 'Dunkel'
     turnText.textContent = `${winnerName} hat gewonnen!`
     moveOptions.innerHTML = ''
-    if (onlineMode) {
+    if (aiMode) {
+      statusText.innerHTML = `
+        <select id="ai-level-re" aria-label="Neue KI-Stufe">
+          <option value="leicht">Leicht</option>
+          <option value="mittel">Mittel</option>
+          <option value="schwer">Schwer</option>
+        </select>
+        <button id="new-ai-game-btn">Neues Spiel (KI)</button>
+      `
+      ;(document.getElementById('ai-level-re') as HTMLSelectElement).value = aiLevel
+      document.getElementById('new-ai-game-btn')?.addEventListener('click', () => {
+        aiLevel = (document.getElementById('ai-level-re') as HTMLSelectElement).value as 'leicht' | 'mittel' | 'schwer'
+        resetGame()
+        updateUI()
+      })
+    } else if (onlineMode) {
       statusText.textContent = 'Partie beendet.'
     } else {
       statusText.innerHTML = '<button id="new-game-btn">Neues Spiel</button>'
