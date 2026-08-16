@@ -28,11 +28,22 @@ laufende Partien weg (Reconnect-Fenster läuft serverseitig ab).
 docker build -t pylos:1.0 .
 k3d image import pylos:1.0 -c gitops-playground
 helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
-  --set nodePort=30080 --set ingress.enabled=false
+  --set nodePort=30000 --set ingress.enabled=true \
+  --set ingress.host=pylos.127.0.0.1.nip.io
 kubectl -n pylos get pods          # → Ready 1/1
-# Zugriff: NodePort ist hostseitig nicht direkt gebunden → Port-Forward:
-kubectl -n pylos port-forward svc/pylos 30081:8787
-# Spiel: http://localhost:30081/  (zwei Browser gegeneinander)
+```
+
+**Zugriff (URL, ohne Port-Forward):**
+- `http://localhost:30000` — NodePort; k3d-serverlb mappt Host-Port 30000 dauerhaft.
+- Ingress: `http://pylos.127.0.0.1.nip.io` — nur wenn Host-Port 80 frei ist.
+  Achtung: läuft OpenShift Local (`crc`) auf dem Rechner, belegt es Port 80
+  (IPv6-Wildcard) und gewinnt gegen das k3d-Mapping auf 127.0.0.1:80.
+  Abhilfe: `crc stop` ODER NodePort-URL verwenden.
+
+Ingress-Controller: der Cluster wurde ohne Traefik erstellt; Installation:
+```bash
+helm repo add traefik https://traefik.github.io/charts
+helm install traefik traefik/traefik -n kube-system
 ```
 
 ## Container-Layout
