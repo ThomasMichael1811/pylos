@@ -64,6 +64,19 @@ helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
   --set ingress.enabled=true --set ingress.host=pylos.127.0.0.1.nip.io
 ```
 
+Mehrere Benutzer: eine htpasswd-Zeile pro User, Zeilen mit Zeilenumbruch
+zusammensetzen:
+
+```bash
+HASH1=$(docker run --rm httpd:2.4-alpine htpasswd -nbB alice pass1)
+HASH2=$(docker run --rm httpd:2.4-alpine htpasswd -nbB bob pass2)
+helm upgrade pylos deploy/pylos -n pylos \
+  --set auth.enabled=true --set auth.users="$(printf '%s\n%s' "$HASH1" "$HASH2")"
+```
+
+Social Login (GitHub/GitLab/Apple/Google) ist als OIDC-Migrationspfad
+tickettiert (#397), siehe ADR `adr-pylos-auth-edge-basic`.
+
 - Auth greift am Edge (Ingress/Traefik): ohne Credentials 401, mit
   Credentials App + SSE erreichbar.
 - **Achtung:** NodePort geht DIREKT zum Pod und umgeht die Auth —
