@@ -95,8 +95,9 @@ export function createRng(seed = 1): () => number {
 
 /**
  * Wählt einen Zug für die Stufe. `leicht` = zufälliger legaler Zug mit
- * leichter Quadrat-Präferenz (bewusst schwach); mittel/schwer folgen in
- * #376/#377.
+ * leichter Quadrat-Präferenz (bewusst schwach); `mittel` = Greedy mit
+ * Bewertungsfunktion (1 Halbzug, remove-Phase mitbewertet); `schwer`
+ * folgt in #377.
  */
 export function chooseMove(state: GameStateData, level: AiLevel, rng: () => number = createRng()): MoveIntent {
   const moves = enumerateMoves(state)
@@ -110,7 +111,46 @@ export function chooseMove(state: GameStateData, level: AiLevel, rng: () => numb
     }
     return moves[Math.floor(rng() * moves.length)]
   }
+  if (level === 'mittel') {
+    return greedyBest(state, rng)
+  }
   throw new Error(`Stufe "${level}" noch nicht implementiert`)
+}
+
+/**
+ * Greedy: wählt den Zug mit der besten Bewertung nach einem Halbzug.
+ * Löst der Zug eine remove_own_balls-Phase aus, wird die beste Entfernung
+ * mitbewertet. Gleichwertige Züge werden zufällig gestreut.
+ */
+export function greedyBest(state: GameStateData, rng: () => number): MoveIntent {
+  const color = state.players[state.currentPlayerIndex].color
+  const moves = enumerateMoves(state)
+  let best = -Infinity
+  let bestMoves: MoveIntent[] = []
+  for (const m of moves) {
+    const clone = cloneState(state)
+    if (!applyMove(clone, m)) continue
+    let score: number
+    if (clone.phase === 'remove_own_balls') {
+      let bestR = -Infinity
+      for (const r of enumerateMoves(clone)) {
+        const c2 = cloneState(clone)
+        if (!applyMove(c2, r)) continue
+        const s = evaluate(c2, color)
+        if (s > bestR) bestR = s
+      }
+      score = bestR === -Infinity ? evaluate(clone, color) : bestR
+    } else {
+      score = evaluate(clone, color)
+    }
+    if (score > best) {
+      best = score
+      bestMoves = [m]
+    } else if (score === best) {
+      bestMoves.push(m)
+    }
+  }
+  return bestMoves[Math.floor(rng() * bestMoves.length)]
 }
 
 /** Bildet der Zug ein Quadrat in eigener Farbe (löst remove_own_balls aus)? */

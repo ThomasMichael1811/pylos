@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { createInitialState } from '../game/GameState'
 import { placeBall } from '../game/Board'
 import {
-  enumerateMoves, evaluate, chooseMove, createRng, cloneState, applyMove, moveFormsSquare,
+  enumerateMoves, evaluate, chooseMove, createRng, cloneState, applyMove, moveFormsSquare, greedyBest,
 } from './ai'
-import type { GameStateData, Position } from '../game/types'
+import type { AiLevel } from './ai'
+import type { GameStateData, Position, BallColor } from '../game/types'
 
 const p = (level: number, x: number, y: number): Position => ({ level, x, y })
 
@@ -79,9 +80,8 @@ describe('KI-Architektur (#374)', () => {
     expect(applyMove(cloneState(s), m1)).toBe(true)
   })
 
-  it('mittel/schwer: noch nicht implementiert → Fehler', () => {
+  it('schwer: noch nicht implementiert → Fehler', () => {
     const s = createInitialState()
-    expect(() => chooseMove(s, 'mittel')).toThrow(/noch nicht implementiert/)
     expect(() => chooseMove(s, 'schwer')).toThrow(/noch nicht implementiert/)
   })
 
@@ -110,6 +110,59 @@ describe('KI-Architektur (#374)', () => {
     const rngAlwaysSquare = () => 0  // < 0.5 → Präferenz-Pfad; zweiter Aufruf → Index 0
     const move = chooseMove(s, 'leicht', rngAlwaysSquare)
     expect(moveFormsSquare(s, move)).toBe(true)
+  })
+
+  it('Mittel: remove-Phase wählt beste Entfernung (2 Kugeln) (#376)', () => {
+    const s = createInitialState()
+    placeBall(s.board, p(0, 0, 0), 'light')
+    placeBall(s.board, p(0, 1, 0), 'light')
+    placeBall(s.board, p(0, 0, 1), 'light')
+    placeBall(s.board, p(0, 1, 1), 'light')
+    placeBall(s.board, p(0, 3, 3), 'light')
+    s.phase = 'remove_own_balls'
+    const move = chooseMove(s, 'mittel', createRng(7))
+    expect(move.type).toBe('remove')
+    expect(move.positions?.length).toBe(2)
+  })
+
+  it('Mittel: Antwortzeit unter 1 s in fortgeschrittener Stellung', () => {
+    const s = createInitialState()
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+      if (x === 3 && y === 3) continue
+      placeBall(s.board, p(0, x, y), y % 2 === 0 ? 'light' : 'dark')
+    }
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+      placeBall(s.board, p(1, x, y), (x + y) % 2 === 0 ? 'light' : 'dark')
+    }
+    const start = Date.now()
+    const move = chooseMove(s, 'mittel', createRng(3))
+    expect(applyMove(cloneState(s), move)).toBe(true)
+    expect(Date.now() - start).toBeLessThan(1000)
+  })
+
+  it('Selbstspiel: Mittel schlägt Leicht deutlich (#376)', () => {
+    let mittelWins = 0
+    const games = 10
+    for (let g = 0; g < games; g++) {
+      const s = createInitialState()
+      const rng = createRng(100 + g)
+      let guard = 0
+      while (s.phase !== 'game_over' && guard++ < 400) {
+        const level: AiLevel = s.currentPlayerIndex === (g % 2) ? 'mittel' : 'leicht'
+        const move = chooseMove(s, level, rng)
+        if (!applyMove(s, move)) throw new Error('illegaler Zug im Selbstspiel')
+      }
+      const winner = s.winner
+      const mittelColor: BallColor = (g % 2) === 0 ? 'light' : 'dark'
+      if (winner === mittelColor) mittelWins++
+    }
+    expect(mittelWins).toBeGreaterThan(games * 0.6)
+  })
+
+  it('greedyBest liefert legalen Zug und bevorzugt bessere Bewertung', () => {
+    const s = createInitialState()
+    const move = greedyBest(s, createRng(1))
+    expect(applyMove(cloneState(s), move)).toBe(true)
   })
 })
 
