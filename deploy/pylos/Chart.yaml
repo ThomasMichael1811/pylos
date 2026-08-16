@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pylos
+description: Pylos — rundenbasiertes Zwei-Spieler-Browserspiel (Frontend + Server in einem Container)
+type: application
+version: 0.1.0
+appVersion: "1.0"

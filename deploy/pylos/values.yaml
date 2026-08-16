@@ -1,0 +1,35 @@
+# Pylos Helm-Chart-Werte.
+#
+# WICHTIG: replicaCount MUSS 1 bleiben — der Server hält Partien im
+# Speicher (src/server/store.ts); mehrere Replicas verlören Raum-
+# Zuordnungen. Siehe DEPLOY.md.
+
+image:
+  repository: pylos
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 8787
+
+# Ressourcen: Pylos ist winzig (1 vCPU / 128 MB reichen).
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Ingress: für k3d (Traefik) und Oracle (nginx-ingress) gleichermaßen
+# nutzbar; Host je Umgebung setzen.
+ingress:
+  enabled: false
+  className: ""
+  host: pylos.local
+  annotations: {}
+
+# Optional: Service als NodePort exposen (z. B. k3d-Smoke-Tests ohne Ingress).
+nodePort: null
