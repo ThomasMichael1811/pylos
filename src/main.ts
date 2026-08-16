@@ -18,6 +18,10 @@ let eventSource: EventSource | null = null
 let myColor: 'light' | 'dark' | null = null
 let aiMode = false
 let aiLevel: 'leicht' | 'mittel' | 'schwer' = 'leicht'
+let demoMode = false
+let demoLightLevel: 'leicht' | 'mittel' | 'schwer' = 'mittel'
+let demoDarkLevel: 'leicht' | 'mittel' | 'schwer' = 'schwer'
+let demoTimer: number | undefined
 
 const renderer = new PylosRenderer(document.getElementById('canvas-container')!)
 
@@ -41,7 +45,14 @@ function updateUI() {
     const winnerName = state.winner === 'light' ? 'Hell' : 'Dunkel'
     turnText.textContent = `${winnerName} hat gewonnen!`
     moveOptions.innerHTML = ''
-    if (aiMode) {
+    if (demoMode) {
+      statusText.innerHTML = '<button id="demo-lobby-btn">Zur Lobby</button>'
+      document.getElementById('demo-lobby-btn')?.addEventListener('click', () => {
+        demoMode = false
+        if (demoTimer) clearTimeout(demoTimer)
+        lobbyEl.style.display = 'flex'
+      })
+    } else if (aiMode) {
       statusText.innerHTML = `
         <select id="ai-level-re" aria-label="Neue KI-Stufe">
           <option value="leicht">Leicht</option>
@@ -71,6 +82,11 @@ function updateUI() {
     case 'select_ball': {
       let turn = `${cpName} ist am Zug`
       let status = 'Klicke auf ein blaues Feld oder ziehe eine Kugel aus der Reserve'
+      if (demoMode) {
+        const lvl = state.currentPlayerIndex === 0 ? demoLightLevel : demoDarkLevel
+        turn += ` — KI-Demo (${lvl})`
+        status = 'KI überlegt …'
+      }
       if (aiMode) {
         turn += ` — Gegner: KI (${aiLevel})`
         if (state.currentPlayerIndex === 1) {
@@ -148,8 +164,28 @@ function scheduleAi() {
   setTimeout(doAiMove, 600)
 }
 
+function demoTick() {
+  if (!demoMode || state.phase === 'game_over') return
+  const level = state.currentPlayerIndex === 0 ? demoLightLevel : demoDarkLevel
+  let move
+  try {
+    move = chooseMove(state, level)
+  } catch {
+    move = chooseMove(state, 'leicht')
+  }
+  if (!applyMove(state, move)) {
+    document.getElementById('game-status')!.textContent = 'Demo: KI-Zug ungültig (Bug!)'
+    demoMode = false
+    return
+  }
+  renderer.updateState(state)
+  updateUI()
+  demoTimer = window.setTimeout(demoTick, 800)
+}
+
 function handleEvent(evt: GameEvent) {
   if (state.phase === 'game_over') return
+  if (demoMode) return
   if (onlineMode && !myTurn()) return
   if (isAiTurn()) return
 
@@ -478,6 +514,7 @@ document.getElementById('ai-btn')!.addEventListener('click', () => {
   onlineMode = false
   myColor = null
   aiMode = true
+  demoMode = false
   aiLevel = (document.getElementById('ai-level') as HTMLSelectElement).value as 'leicht' | 'mittel' | 'schwer'
   state = createInitialState()
   selectedBall = null
@@ -485,6 +522,22 @@ document.getElementById('ai-btn')!.addEventListener('click', () => {
   renderer.updateState(state)
   updateUI()
   hideLobby()
+})
+document.getElementById('demo-btn')!.addEventListener('click', () => {
+  onlineMode = false
+  myColor = null
+  aiMode = false
+  demoMode = true
+  demoLightLevel = (document.getElementById('demo-level-light') as HTMLSelectElement).value as 'leicht' | 'mittel' | 'schwer'
+  demoDarkLevel = (document.getElementById('demo-level-dark') as HTMLSelectElement).value as 'leicht' | 'mittel' | 'schwer'
+  state = createInitialState()
+  selectedBall = null
+  removeSelection = []
+  renderer.updateState(state)
+  updateUI()
+  hideLobby()
+  if (demoTimer) clearTimeout(demoTimer)
+  demoTimer = window.setTimeout(demoTick, 800)
 })
 
 const urlRoom = new URLSearchParams(location.search).get('room')
