@@ -19,8 +19,21 @@ laufende Partien weg (Reconnect-Fenster läuft serverseitig ab).
 ## Kubernetes
 
 - Lokaler Test: k3d-Cluster `gitops-playground` (kubectl current context).
-- Manifeste: Helm-Chart unter `deploy/` (Ticket #380).
+- Manifeste: Helm-Chart unter `deploy/pylos` (Ticket #380).
 - Produktion: Oracle Free Tier + k3s, siehe ADR `adr-pylos-hosting-evaluierung`.
+
+### k3d-Deployment (lokal)
+
+```bash
+docker build -t pylos:1.0 .
+k3d image import pylos:1.0 -c gitops-playground
+helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
+  --set nodePort=30080 --set ingress.enabled=false
+kubectl -n pylos get pods          # → Ready 1/1
+# Zugriff: NodePort ist hostseitig nicht direkt gebunden → Port-Forward:
+kubectl -n pylos port-forward svc/pylos 30081:8787
+# Spiel: http://localhost:30081/  (zwei Browser gegeneinander)
+```
 
 ## Container-Layout
 

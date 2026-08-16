@@ -17,8 +17,8 @@ export interface Room {
   state: GameStateData
   light?: string
   dark?: string
-  lightConnected?: boolean
-  darkConnected?: boolean
+  lightStreams: number
+  darkStreams: number
   abortTimer?: ReturnType<typeof setTimeout>
 }
 
@@ -39,7 +39,7 @@ const listeners = new Map<string, Set<Listener>>()
 
 export function createRoom(): Room {
   const id = Math.random().toString(36).slice(2, 8)
-  const room: Room = { id, state: createInitialState() }
+  const room: Room = { id, state: createInitialState(), lightStreams: 0, darkStreams: 0 }
   rooms.set(id, room)
   listeners.set(id, new Set())
   return room
@@ -121,20 +121,34 @@ export function setConnected(id: string, playerId: string, connected: boolean): 
   if (!room) return
   const color = isPlayer(room, playerId)
   if (!color) return
-  const wasConnected = color === 'light' ? room.lightConnected : room.darkConnected
-  if (color === 'light') room.lightConnected = connected
-  else room.darkConnected = connected
 
   if (connected) {
     if (room.abortTimer) {
       clearTimeout(room.abortTimer)
       room.abortTimer = undefined
     }
-    if (wasConnected === false) broadcast(id, { type: 'rejoined', color })
+    if (color === 'light') {
+      const was = room.lightStreams
+      room.lightStreams = was + 1
+      if (was === 0) broadcast(id, { type: 'rejoined', color })
+    } else {
+      const was = room.darkStreams
+      room.darkStreams = was + 1
+      if (was === 0) broadcast(id, { type: 'rejoined', color })
+    }
     return
   }
-  broadcast(id, { type: 'disconnected', color })
-  if (!room.lightConnected && !room.darkConnected) {
+
+  if (color === 'light') {
+    if (room.lightStreams <= 0) return
+    room.lightStreams--
+    if (room.lightStreams === 0) broadcast(id, { type: 'disconnected', color })
+  } else {
+    if (room.darkStreams <= 0) return
+    room.darkStreams--
+    if (room.darkStreams === 0) broadcast(id, { type: 'disconnected', color })
+  }
+  if (room.lightStreams === 0 && room.darkStreams === 0) {
     room.abortTimer = setTimeout(() => {
       broadcast(id, { type: 'aborted' })
       rooms.delete(id)

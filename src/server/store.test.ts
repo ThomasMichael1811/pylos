@@ -146,4 +146,18 @@ describe('Server-Store (#365)', () => {
       vi.useRealTimers()
     }
   })
+
+  it('verspäteter Close alter Verbindung: nur EIN disconnected (#381-Race)', () => {
+    const room = createRoom()
+    joinRoom(room.id, 'a'); joinRoom(room.id, 'b')
+    const events: string[] = []
+    subscribe(room.id, (evt) => events.push(evt.type))
+    setConnected(room.id, 'a', true)
+    setConnected(room.id, 'b', true)   // alte Verbindung
+    setConnected(room.id, 'b', true)   // neue Verbindung (vor altem Close)
+    setConnected(room.id, 'b', false)  // verspäteter Close der alten
+    setConnected(room.id, 'b', false)  // Close der neuen
+    expect(events.filter(e => e === 'disconnected')).toHaveLength(1)
+    expect(events.filter(e => e === 'rejoined')).toHaveLength(2)  // je 1x pro Spieler (Erstverbindung)
+  })
 })
