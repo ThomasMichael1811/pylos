@@ -50,3 +50,11 @@ export function isValidPosition(pos: Position): boolean {
 export function otherColor(c: BallColor): BallColor {
   return c === 'light' ? 'dark' : 'light'
 }
+
+export interface MoveIntent {
+  type: 'place' | 'stack' | 'move' | 'remove'
+  pos?: Position
+  from?: Position
+  to?: Position
+  positions?: Position[]
+}

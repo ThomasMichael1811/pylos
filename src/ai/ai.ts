@@ -1,0 +1,120 @@
+import {
+  executePlaceReserve, executeStackFromReserve,
+  executeMoveExisting, executeRemoveBalls,
+} from '../game/GameState'
+import {
+  getFreeSlots, getStackTargets, getMovableOwnBalls,
+  getOwnBallsOnBoard, isInSupportingSquare, findSquares, isMonochromaticSquare,
+} from '../game/Board'
+import type { GameStateData, MoveIntent, BallColor } from '../game/types'
+
+export type AiLevel = 'leicht' | 'mittel' | 'schwer'
+
+/**
+ * Alle legalen Züge der aktuellen Phase (strukturell legal, da aus
+ * getAvailableMoves/Board-Funktionen abgeleitet — ADR adr-pylos-ki-architektur).
+ */
+export function enumerateMoves(state: GameStateData): MoveIntent[] {
+  const moves: MoveIntent[] = []
+
+  if (state.phase === 'remove_own_balls') {
+    const color = state.players[state.currentPlayerIndex].color
+    const balls = getOwnBallsOnBoard(state.board, color)
+    for (const b of balls) moves.push({ type: 'remove', positions: [b] })
+    for (let i = 0; i < balls.length; i++) {
+      for (let j = i + 1; j < balls.length; j++) {
+        moves.push({ type: 'remove', positions: [balls[i], balls[j]] })
+      }
+    }
+    return moves
+  }
+
+  if (state.phase !== 'select_ball') return moves
+
+  const color = state.players[state.currentPlayerIndex].color
+
+  if (state.players[state.currentPlayerIndex].reserve > 0) {
+    for (const pos of getFreeSlots(state.board).filter(s => s.level === 0)) {
+      moves.push({ type: 'place', pos })
+    }
+    for (const pos of getStackTargets(state.board)) {
+      moves.push({ type: 'stack', pos })
+    }
+  }
+
+  for (const from of getMovableOwnBalls(state.board, color)) {
+    for (const to of getStackTargets(state.board)) {
+      if (to.level > from.level && !isInSupportingSquare(from, to)) {
+        moves.push({ type: 'move', from, to })
+      }
+    }
+  }
+
+  return moves
+}
+
+/**
+ * Bewertung aus Sicht von `color` (+ = gut für color).
+ * Gewichte siehe ADR adr-pylos-ki-architektur.
+ */
+export function evaluate(state: GameStateData, color: BallColor): number {
+  if (state.phase === 'game_over') {
+    if (state.winner === color) return 10_000
+    if (state.winner !== null) return -10_000
+  }
+
+  const me = state.players.find(p => p.color === color)!
+  const opp = state.players.find(p => p.color !== color)!
+  let score = (me.reserve - opp.reserve) * 10
+
+  for (let level = 0; level <= 2; level++) {
+    const squares = findSquares(state.board, level)
+    for (const sq of squares) {
+      if (isMonochromaticSquare(state.board, level, sq.x, sq.y, color)) score += 5
+      if (isMonochromaticSquare(state.board, level, sq.x, sq.y, opp.color)) score -= 5
+    }
+  }
+
+  score += getOwnBallsOnBoard(state.board, color).length
+  score -= getOwnBallsOnBoard(state.board, opp.color).length
+
+  return score
+}
+
+/** Einfacher seedbarer RNG (mulberry32) für deterministische Tests. */
+export function createRng(seed = 1): () => number {
+  let a = seed >>> 0
+  return () => {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/**
+ * Wählt einen Zug für die Stufe. `leicht` ist hier bereits funktional
+ * (zufälliger legaler Zug); mittel/schwer folgen in #376/#377.
+ */
+export function chooseMove(state: GameStateData, level: AiLevel, rng: () => number = createRng()): MoveIntent {
+  const moves = enumerateMoves(state)
+  if (moves.length === 0) throw new Error('keine legalen Züge')
+  if (level === 'leicht') {
+    return moves[Math.floor(rng() * moves.length)]
+  }
+  throw new Error(`Stufe "${level}" noch nicht implementiert`)
+}
+
+export function cloneState(state: GameStateData): GameStateData {
+  return JSON.parse(JSON.stringify(state)) as GameStateData
+}
+
+export function applyMove(state: GameStateData, move: MoveIntent): boolean {
+  switch (move.type) {
+    case 'place': return move.pos ? executePlaceReserve(state, move.pos) : false
+    case 'stack': return move.pos ? executeStackFromReserve(state, move.pos) : false
+    case 'move': return move.from && move.to ? executeMoveExisting(state, move.from, move.to) : false
+    case 'remove': return Array.isArray(move.positions) ? executeRemoveBalls(state, move.positions) : false
+  }
+}

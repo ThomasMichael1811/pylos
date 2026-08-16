@@ -2,15 +2,9 @@ import {
   createInitialState, executePlaceReserve, executeStackFromReserve,
   executeMoveExisting, executeRemoveBalls,
 } from '../game/GameState'
-import type { GameStateData, Position, BallColor } from '../game/types'
+import type { GameStateData, BallColor, MoveIntent } from '../game/types'
 
-export interface MoveIntent {
-  type: 'place' | 'stack' | 'move' | 'remove'
-  pos?: Position
-  from?: Position
-  to?: Position
-  positions?: Position[]
-}
+export type { MoveIntent } from '../game/types'
 
 export interface Room {
   id: string
