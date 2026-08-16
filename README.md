@@ -2,15 +2,35 @@
 
 Rundenbasiertes Strategiespiel für zwei Personen im Browser. Zwei Spieler bauen aus 30 Kugeln eine Pyramide — wer die letzte Kugel auf die Spitze legt, gewinnt. Klassisches Denkspiel (Gigamic), hier als modernes Webspiel umgesetzt.
 
+## Spielmodi
+
+Die Lobby bietet beim Start vier Möglichkeiten:
+
+### 1. Lokale Partie (Hot-Seat)
+Zwei Personen spielen abwechselnd am selben Bildschirm. Nach jedem Zug zeigt die Sidebar deutlich, wer dran ist. Kein Server nötig.
+
+### 2. Online (über Server)
+Ein Spieler erstellt eine Partie („Neue Partie erstellen") und bekommt einen Einladungslink mit Raum-ID. Der zweite Spieler öffnet den Link (oder gibt die Raum-ID ein) und tritt bei — beide sehen denselben Spielstand, Züge werden per SSE in Echtzeit synchronisiert. Bei kurzem Verbindungsabbruch stellt ein 60-Sekunden-Reconnect-Fenster die Partie automatisch wieder her (gleiche Farbe, gleicher Stand). Weitere Details unter „Online-Architektur".
+
+### 3. Gegen die KI (Solo)
+Spiele alleine gegen einen Computergegner in drei Schwierigkeitsstufen:
+- **Leicht** — zufällige legale Züge mit leichter Quadrat-Präferenz
+- **Mittel** — Greedy: bewertet alle Züge + unmittelbare Folgen (inkl. Farbquadrat-Entfernung)
+- **Schwer** — Minimax mit Alpha-Beta-Pruning (Tiefe 3, automatischer Fallback)
+
+Du spielst Hell, die KI spielt Dunkel; ihre Züge laufen mit kurzer Verzögerung sichtbar ab. Nach dem Spielende kannst du direkt die Stufe wechseln und eine neue Partie starten, ohne zurück in die Lobby zu müssen.
+
+### 4. KI-Demo (KI gegen KI)
+Zwei KIs spielen gegeneinander — Stufen für Hell und Dunkel frei wählbar. Praktisch zum Zuschauen und um die KIs zu vergleichen (und Basis für künftige KI-Optimierung).
+
+**Geplant:** Spielstatistik (Zuganzahl + Partie-Dauer) für alle Modi (Epic #400).
+
 ## Features
 
 - **Vollständiges Regelwerk:** Setzen, Stapeln auf 2×2-Quadrate, Versetzen auf beliebige höhere Ebenen, Farbquadrat-Bonus (1–2 Kugeln zurück), Sieg per Spitze, Niederlage bei leerer Reserve, alle Zug-Guards (bedeckte Kugeln, Stützquadrat-Schutz).
-- **Drei Spielmodi:**
-  - Lokal (Hot-Seat) an einem Bildschirm
-  - Online über Server (Lobby mit Raum-Link, SSE-Sync, Auto-Reconnect mit 60 s Fenster)
-  - KI-Gegner in Stufen (geplant, Epic #372)
+- **Vier Spielmodi:** Hot-Seat, Online, KI-Gegner (3 Stufen), KI-Demo — Details im Abschnitt „Spielmodi".
 - **Komfortable Bedienung:** Klicks + Drag & Drop (Kugeln greifen, legen, stapeln, versetzen, entfernen), farbige Legende in der Sidebar, 2D/3D-Umschaltung.
-- **Qualität:** Unit-Tests (Vitest, Coverage ≥ 50 % auf `src/game`, aktuell ~98 %), E2E-Suite (Playwright: Hot-Seat, Online, Reconnect).
+- **Qualität:** Unit-Tests (Vitest, Coverage ≥ 50 % auf `src/game`, aktuell ~98 %), E2E-Suite (Playwright: Hot-Seat, Online, Reconnect, KI, Demo).
 - **Betrieb:** Ein kombinierter Docker-Container (Frontend + API + SSE), Helm-Chart für Kubernetes, lokal auf k3d testbar.
 
 ## Schnellstart
