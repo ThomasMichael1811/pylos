@@ -15,6 +15,14 @@
           <button id="create-room-btn">Neue Partie erstellen</button>
           <button id="lobby-local-btn">Lokale Partie (Hot-Seat)</button>
         </div>
+        <div class="lobby-row">
+          <button id="ai-btn">Gegen KI spielen</button>
+          <select id="ai-level" aria-label="KI-Schwierigkeit">
+            <option value="leicht">Leicht</option>
+            <option value="mittel">Mittel</option>
+            <option value="schwer">Schwer</option>
+          </select>
+        </div>
         <div id="room-link" hidden>
           Einladungslink (an Gegner senden):
           <input id="room-link-input" readonly />

@@ -15,6 +15,8 @@ let onlineMode = false
 let roomId: string | null = null
 let eventSource: EventSource | null = null
 let myColor: 'light' | 'dark' | null = null
+let aiMode = false
+let aiLevel: 'leicht' | 'mittel' | 'schwer' = 'leicht'
 
 const renderer = new PylosRenderer(document.getElementById('canvas-container')!)
 
@@ -53,6 +55,12 @@ function updateUI() {
     case 'select_ball': {
       let turn = `${cpName} ist am Zug`
       let status = 'Klicke auf ein blaues Feld oder ziehe eine Kugel aus der Reserve'
+      if (aiMode) {
+        turn += ` — Gegner: KI (${aiLevel})`
+        if (state.currentPlayerIndex === 1) {
+          status = 'KI überlegt … (Zug-Ausführung folgt in #378)'
+        }
+      }
       if (onlineMode && myColor) {
         turn += myTurn() ? ' — dein Zug' : ' — Gegner am Zug'
         status = myTurn() ? 'Du bist dran: Kugel setzen, stapeln oder versetzen' : 'Warte auf den Zug deines Gegners …'
@@ -409,6 +417,19 @@ document.getElementById('join-room-btn')!.addEventListener('click', () => {
 document.getElementById('lobby-local-btn')!.addEventListener('click', () => {
   onlineMode = false
   myColor = null
+  aiMode = false
+  hideLobby()
+})
+document.getElementById('ai-btn')!.addEventListener('click', () => {
+  onlineMode = false
+  myColor = null
+  aiMode = true
+  aiLevel = (document.getElementById('ai-level') as HTMLSelectElement).value as 'leicht' | 'mittel' | 'schwer'
+  state = createInitialState()
+  selectedBall = null
+  removeSelection = []
+  renderer.updateState(state)
+  updateUI()
   hideLobby()
 })
 
