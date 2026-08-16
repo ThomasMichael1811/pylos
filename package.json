@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "node e2e/run.mjs",
     "release:notes": "node scripts/release-notes.mjs",
+    "hooks:install": "git config core.hooksPath .githooks",
     "server": "tsx src/server/server.ts"
   },
   "dependencies": {

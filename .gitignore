@@ -25,3 +25,6 @@ yarn-error.log*
 .idea/
 .vscode/
 *.swp
+
+# Release Notes (vom Git-Hook erzeugt)
+RELEASE_NOTES.md

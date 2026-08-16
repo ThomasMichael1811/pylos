@@ -1,0 +1,15 @@
+#!/bin/sh
+# reference-transaction hook: feuert bei jeder Ref-Änderung.
+# Nur bei Erstellung eines v*-Tags Release Notes erzeugen.
+if [ "$1" != "prepared" ]; then
+  exit 0
+fi
+while read -r old new ref; do
+  case "$ref" in
+    refs/tags/v*)
+      npm run release:notes > RELEASE_NOTES.md 2>/dev/null || true
+      exit 0
+      ;;
+  esac
+done
+exit 0

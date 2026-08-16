@@ -55,3 +55,24 @@ gh release create v3.0 --generate-notes
 - Release Notes immer aus `npm run release:notes` — nie von Hand raten.
 - Commits nutzen Conventional Commits (siehe AGENTS.md) → Gruppierung stimmt automatisch.
 - Tags NICHT neu setzen, wenn bereits gepusht (Git-Historie bleibt unverändert).
+
+## Automatisierung
+
+Zwei Automatismen erledigen die meiste Arbeit:
+
+**1. Lokaler Git-Hook (Tag → Notes-Datei)**
+
+```bash
+npm run hooks:install    # einmalig: core.hooksPath = .githooks
+```
+
+Ab dann erzeugt jeder neue `v*`-Tag automatisch `RELEASE_NOTES.md`
+(gitignored) mit den gruppierten Notizen — Hook: `.githooks/reference-transaction`.
+
+**2. GitHub Action (Tag-Push → Release)**
+
+Beim Push eines `v*`-Tags erstellt der Workflow `.github/workflows/release.yml`
+automatisch ein GitHub Release mit `--generate-notes`.
+
+Ablauf künftig: `git tag -a vX.Y.Z -m "…"` → Hook erzeugt Notes → `git push
+origin vX.Y.Z` → GitHub Action veröffentlicht das Release. Fertig.
