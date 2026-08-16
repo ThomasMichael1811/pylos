@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "node e2e/run.mjs",
+    "release:notes": "node scripts/release-notes.mjs",
     "server": "tsx src/server/server.ts"
   },
   "dependencies": {
