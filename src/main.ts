@@ -6,6 +6,7 @@ import {
 import { Position } from './game/types'
 import { getStackTargets, getOwnBallsOnBoard } from './game/Board'
 import { PylosRenderer, GameEvent } from './renderer/PylosRenderer'
+import { chooseMove, applyMove } from './ai/ai'
 import type { MoveIntent } from './server/store'
 
 let state = createInitialState()
@@ -58,7 +59,7 @@ function updateUI() {
       if (aiMode) {
         turn += ` — Gegner: KI (${aiLevel})`
         if (state.currentPlayerIndex === 1) {
-          status = 'KI überlegt … (Zug-Ausführung folgt in #378)'
+          status = 'KI überlegt …'
         }
       }
       if (onlineMode && myColor) {
@@ -85,6 +86,7 @@ function updateUI() {
           executeRemoveBalls(state, removeSelection)
           renderer.updateState(state)
           updateUI()
+          scheduleAi()
         }
         removeSelection = []
       })
@@ -101,9 +103,40 @@ function resetGame() {
   updateUI()
 }
 
+function isAiTurn(): boolean {
+  return aiMode && state.currentPlayerIndex === 1 && state.phase !== 'game_over'
+}
+
+function doAiMove() {
+  if (!isAiTurn()) return
+  let move
+  try {
+    move = chooseMove(state, aiLevel)
+  } catch {
+    move = chooseMove(state, 'leicht')
+  }
+  if (!applyMove(state, move)) {
+    document.getElementById('game-status')!.textContent = 'KI-Zug ungültig (Bug!)'
+    return
+  }
+  selectedBall = null
+  removeSelection = []
+  renderer.updateState(state)
+  updateUI()
+  if (isAiTurn()) {
+    setTimeout(doAiMove, 500)
+  }
+}
+
+function scheduleAi() {
+  if (!isAiTurn()) return
+  setTimeout(doAiMove, 600)
+}
+
 function handleEvent(evt: GameEvent) {
   if (state.phase === 'game_over') return
   if (onlineMode && !myTurn()) return
+  if (isAiTurn()) return
 
   switch (evt.type) {
     case 'drag_move': {
@@ -114,6 +147,7 @@ function handleEvent(evt: GameEvent) {
         executeMoveExisting(state, evt.from, evt.to)
         renderer.updateState(state)
         updateUI()
+        scheduleAi()
       }
       selectedBall = null
       return
@@ -141,6 +175,7 @@ function handleEvent(evt: GameEvent) {
           sendMove({ type: 'remove', positions: [...removeSelection] })
         } else {
           executeRemoveBalls(state, removeSelection)
+          scheduleAi()
         }
         removeSelection = []
       }
@@ -197,6 +232,7 @@ function handleEvent(evt: GameEvent) {
             executeMoveExisting(state, ball, evt.pos)
             renderer.updateState(state)
             updateUI()
+            scheduleAi()
           }
           selectedBall = null
           return
@@ -219,6 +255,7 @@ function handleEvent(evt: GameEvent) {
           executePlaceReserve(state, evt.pos)
           renderer.updateState(state)
           updateUI()
+          scheduleAi()
         }
         selectedBall = null
         return
@@ -231,6 +268,7 @@ function handleEvent(evt: GameEvent) {
           executeStackFromReserve(state, evt.pos)
           renderer.updateState(state)
           updateUI()
+          scheduleAi()
         }
         selectedBall = null
         return
@@ -255,6 +293,7 @@ function handleEvent(evt: GameEvent) {
           executeMoveExisting(state, selectedBall, evt.pos)
           renderer.updateState(state)
           updateUI()
+          scheduleAi()
         }
         selectedBall = null
         return

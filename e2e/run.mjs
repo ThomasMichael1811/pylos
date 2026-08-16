@@ -21,7 +21,7 @@ try {
   await waitFor('http://localhost:5199/')
   await waitFor('http://localhost:8787/api/games')
 
-  const specs = ['hotseat.spec.mjs', 'online.spec.mjs', 'reconnect.spec.mjs']
+  const specs = ['hotseat.spec.mjs', 'online.spec.mjs', 'reconnect.spec.mjs', 'ai.spec.mjs']
   for (const file of specs) {
     console.log(`── E2E ${file} ──`)
     try {
