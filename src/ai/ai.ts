@@ -94,16 +94,30 @@ export function createRng(seed = 1): () => number {
 }
 
 /**
- * Wählt einen Zug für die Stufe. `leicht` ist hier bereits funktional
- * (zufälliger legaler Zug); mittel/schwer folgen in #376/#377.
+ * Wählt einen Zug für die Stufe. `leicht` = zufälliger legaler Zug mit
+ * leichter Quadrat-Präferenz (bewusst schwach); mittel/schwer folgen in
+ * #376/#377.
  */
 export function chooseMove(state: GameStateData, level: AiLevel, rng: () => number = createRng()): MoveIntent {
   const moves = enumerateMoves(state)
   if (moves.length === 0) throw new Error('keine legalen Züge')
   if (level === 'leicht') {
+    if (rng() < 0.5) {
+      const squareMoves = moves.filter(m => moveFormsSquare(state, m))
+      if (squareMoves.length > 0) {
+        return squareMoves[Math.floor(rng() * squareMoves.length)]
+      }
+    }
     return moves[Math.floor(rng() * moves.length)]
   }
   throw new Error(`Stufe "${level}" noch nicht implementiert`)
+}
+
+/** Bildet der Zug ein Quadrat in eigener Farbe (löst remove_own_balls aus)? */
+export function moveFormsSquare(state: GameStateData, move: MoveIntent): boolean {
+  const clone = cloneState(state)
+  if (!applyMove(clone, move)) return false
+  return clone.phase === 'remove_own_balls'
 }
 
 export function cloneState(state: GameStateData): GameStateData {

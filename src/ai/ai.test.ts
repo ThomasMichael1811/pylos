@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { createInitialState } from '../game/GameState'
 import { placeBall } from '../game/Board'
 import {
-  enumerateMoves, evaluate, chooseMove, createRng, cloneState, applyMove,
+  enumerateMoves, evaluate, chooseMove, createRng, cloneState, applyMove, moveFormsSquare,
 } from './ai'
 import type { GameStateData, Position } from '../game/types'
 
@@ -83,6 +83,33 @@ describe('KI-Architektur (#374)', () => {
     const s = createInitialState()
     expect(() => chooseMove(s, 'mittel')).toThrow(/noch nicht implementiert/)
     expect(() => chooseMove(s, 'schwer')).toThrow(/noch nicht implementiert/)
+  })
+
+  it('Leicht: 100 Zufallszüge aus zufälligen Stellungen alle legal (#375)', () => {
+    const rng = createRng(1337)
+    let s = createInitialState()
+    for (let i = 0; i < 100; i++) {
+      const move = chooseMove(s, 'leicht', rng)
+      expect(applyMove(s, move)).toBe(true)
+      if (s.phase === 'remove_own_balls') {
+        // Pflicht-Entfernung: KI nimmt 1–2 Kugeln
+        const remove = chooseMove(s, 'leicht', rng)
+        expect(remove.type).toBe('remove')
+        expect(applyMove(s, remove)).toBe(true)
+      }
+      if (s.phase === 'game_over') break
+    }
+  })
+
+  it('Leicht: Quadrat-Präferenz wählt quadratbildenden Zug, wenn vorhanden', () => {
+    const s = createInitialState()
+    placeBall(s.board, p(0, 0, 0), 'light')
+    placeBall(s.board, p(0, 1, 0), 'light')
+    placeBall(s.board, p(0, 0, 1), 'light')
+    // Hell bildet mit (1,1) ein Farbquadrat
+    const rngAlwaysSquare = () => 0  // < 0.5 → Präferenz-Pfad; zweiter Aufruf → Index 0
+    const move = chooseMove(s, 'leicht', rngAlwaysSquare)
+    expect(moveFormsSquare(s, move)).toBe(true)
   })
 })
 
