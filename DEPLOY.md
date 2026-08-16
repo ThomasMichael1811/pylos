@@ -18,7 +18,7 @@ laufende Partien weg (Reconnect-Fenster läuft serverseitig ab).
 
 ## Kubernetes
 
-- Lokaler Test: k3d-Cluster `gitops-playground` (kubectl current context).
+- Lokaler Test: k3d-Cluster `<clustername>` (kubectl current context).
 - Manifeste: Helm-Chart unter `deploy/pylos` (Ticket #380).
 - Produktion: Oracle Free Tier + k3s, siehe ADR `adr-pylos-hosting-evaluierung`.
 
@@ -26,7 +26,7 @@ laufende Partien weg (Reconnect-Fenster läuft serverseitig ab).
 
 ```bash
 docker build -t pylos:1.0 .
-k3d image import pylos:1.0 -c gitops-playground
+k3d image import pylos:1.0 -c <clustername>
 helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
   --set nodePort=30000 --set ingress.enabled=true \
   --set ingress.host=pylos.127.0.0.1.nip.io
@@ -49,7 +49,7 @@ helm install traefik traefik/traefik -n kube-system
 Hinweise aus der Praxis:
 - Wenn Port 80 beim Clusterstart belegt war (z. B. durch crc), bindet die
   k3d-serverlb ihn nicht — nach Freigabe hilft:
-  `docker restart k3d-gitops-playground-serverlb`.
+  `docker restart k3d-<clustername>-serverlb`.
 - `nip.io` muss im Netz auflösbar sein; sonst `/etc/hosts`-Eintrag setzen:
   `127.0.0.1 pylos.127.0.0.1.nip.io`.
 

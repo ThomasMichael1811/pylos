@@ -73,7 +73,7 @@ docker build -t pylos:1.0 .
 docker run -d --name pylos -p 8787:8787 pylos:1.0   # http://localhost:8787/
 ```
 
-Kubernetes: Helm-Chart in `deploy/pylos`. Lokales k3d-Deployment (Cluster `gitops-playground`) inkl. Image-Import und Port-Forward: siehe [`DEPLOY.md`](DEPLOY.md). Produktiv-Ziel: Oracle Free Tier + k3s, siehe ADR `adr-pylos-hosting-evaluierung`.
+Kubernetes: Helm-Chart in `deploy/pylos`. Lokales k3d-Deployment (Cluster `<clustername>`) inkl. Image-Import und Port-Forward: siehe [`DEPLOY.md`](DEPLOY.md). Produktiv-Ziel: Oracle Free Tier + k3s, siehe ADR `adr-pylos-hosting-evaluierung`.
 
 ## Entwicklung
 
