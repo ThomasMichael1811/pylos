@@ -46,6 +46,13 @@ helm repo add traefik https://traefik.github.io/charts
 helm install traefik traefik/traefik -n kube-system
 ```
 
+Hinweise aus der Praxis:
+- Wenn Port 80 beim Clusterstart belegt war (z. B. durch crc), bindet die
+  k3d-serverlb ihn nicht — nach Freigabe hilft:
+  `docker restart k3d-gitops-playground-serverlb`.
+- `nip.io` muss im Netz auflösbar sein; sonst `/etc/hosts`-Eintrag setzen:
+  `127.0.0.1 pylos.127.0.0.1.nip.io`.
+
 ## Container-Layout
 
 - Multi-Stage: `npm ci` → `vite build` + esbuild-Bundle (`server.cjs`)
