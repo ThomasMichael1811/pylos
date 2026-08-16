@@ -95,7 +95,7 @@ helm upgrade pylos deploy/pylos -n pylos \
   --set auth.enabled=true \
   --set-file auth.users=users.txt \
   --set ingress.enabled=true \
-  --set ingress.host=pylos.127.0.0.1.nip.io
+  --set ingress.host=pylos.localhost
 ```
 
 Danach: ohne Credentials → 401, mit gültigem Benutzer/Passwort → App + SSE erreichbar. Neue Benutzer = Zeile in `users.txt` ergänzen und `helm upgrade` wiederholen. Hinweis: NodePort umgeht die Auth (direkt zum Pod) — bei Auth-Betrieb `--set nodePort=null`. Social Login (GitHub/GitLab/Apple/Google) ist als OIDC-Ausbau tickettiert (#397).

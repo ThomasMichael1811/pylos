@@ -29,13 +29,13 @@ docker build -t pylos:1.0 .
 k3d image import pylos:1.0 -c <clustername>
 helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
   --set nodePort=30000 --set ingress.enabled=true \
-  --set ingress.host=pylos.127.0.0.1.nip.io
+  --set ingress.host=pylos.localhost
 kubectl -n pylos get pods          # → Ready 1/1
 ```
 
 **Zugriff (URL, ohne Port-Forward):**
 - `http://localhost:30000` — NodePort; k3d-serverlb mappt Host-Port 30000 dauerhaft.
-- Ingress: `http://pylos.127.0.0.1.nip.io` — nur wenn Host-Port 80 frei ist.
+- Ingress: `http://pylos.localhost` — nur wenn Host-Port 80 frei ist.
   Achtung: läuft OpenShift Local (`crc`) auf dem Rechner, belegt es Port 80
   (IPv6-Wildcard) und gewinnt gegen das k3d-Mapping auf 127.0.0.1:80.
   Abhilfe: `crc stop` ODER NodePort-URL verwenden.
@@ -51,7 +51,7 @@ Hinweise aus der Praxis:
   k3d-serverlb ihn nicht — nach Freigabe hilft:
   `docker restart k3d-gitops-playground-serverlb`.
 - `nip.io` muss im Netz auflösbar sein; sonst `/etc/hosts`-Eintrag setzen:
-  `127.0.0.1 pylos.127.0.0.1.nip.io`.
+  `127.0.0.1 pylos.localhost`.
 
 ### Zugriffsschutz (Basic Auth, ADR adr-pylos-auth-edge-basic)
 
@@ -61,7 +61,7 @@ HASH=$(docker run --rm httpd:2.4-alpine htpasswd -nbB benutzername passwort)
 
 helm upgrade --install pylos deploy/pylos -n pylos --create-namespace \
   --set auth.enabled=true --set auth.users="$HASH" \
-  --set ingress.enabled=true --set ingress.host=pylos.127.0.0.1.nip.io
+  --set ingress.enabled=true --set ingress.host=pylos.localhost
 ```
 
 Mehrere Benutzer: eine htpasswd-Zeile pro User, Zeilen mit Zeilenumbruch
